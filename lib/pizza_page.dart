@@ -1,7 +1,26 @@
 import 'package:flutter/material.dart';
 
-class PizzaPage extends StatelessWidget {
+class PizzaPage extends StatefulWidget {
   const PizzaPage({super.key});
+
+  @override
+  State<PizzaPage> createState() => _PizzaPageState();
+}
+
+class _PizzaPageState extends State<PizzaPage> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -80,23 +99,46 @@ class PizzaPage extends StatelessWidget {
                   const SizedBox(height: 16),
                   const Divider(),
                   const SizedBox(height: 16),
-                  
-                  // Ingredients Section
-                  const Text(
-                    "Ingredients",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+
+                  TabBar(
+                    controller: _tabController,
+                    labelColor: Colors.black,
+                    unselectedLabelColor: Colors.grey,
+                    indicatorColor: Colors.orange,
+                    tabs: const [
+                      Tab(text: "Ingredients"),
+                      Tab(text: "Description"),
+                    ],
                   ),
                   const SizedBox(height: 12),
-                  _buildIngredientItem("Fresh Tomato Sauce"),
-                  _buildIngredientItem("Mozzarella Cheese"),
-                  _buildIngredientItem("Spicy Pepperoni"),
-                  _buildIngredientItem("Sliced Mushrooms"),
-                  _buildIngredientItem("Green Bell Peppers"),
-                  _buildIngredientItem("Black Olives"),
-                  _buildIngredientItem("Italian Oregano"),
+                  SizedBox(
+                    height: 300, // Adjust height as needed
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        // Ingredients Tab Content
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildIngredientItem("Fresh Tomato Sauce"),
+                            _buildIngredientItem("Mozzarella Cheese"),
+                            _buildIngredientItem("Spicy Pepperoni"),
+                            _buildIngredientItem("Sliced Mushrooms"),
+                            _buildIngredientItem("Green Bell Peppers"),
+                            _buildIngredientItem("Black Olives"),
+                            _buildIngredientItem("Italian Oregano"),
+                          ],
+                        ),
+                        // Description Tab Content
+                        const SingleChildScrollView(
+                          child: Text(
+                            "A delicious classic pizza with a perfect blend of fresh tomato sauce, mozzarella cheese, and a variety of toppings, baked to perfection.",
+                            style: TextStyle(fontSize: 16, color: Colors.grey),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 32),
                 ],
               ),

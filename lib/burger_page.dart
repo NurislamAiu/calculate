@@ -1,14 +1,36 @@
 import 'package:flutter/material.dart';
 
-class BurgerPage extends StatelessWidget {
+class BurgerPage extends StatefulWidget {
   const BurgerPage({super.key});
+
+  @override
+  State<BurgerPage> createState() => _BurgerPageState();
+}
+
+class _BurgerPageState extends State<BurgerPage> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text("Burger Details", style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          "Burger Details",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
@@ -35,10 +57,7 @@ class BurgerPage extends StatelessWidget {
               child: ClipRRect(
                 child: Hero(
                   tag: "assets/burger.png",
-                  child: Image.asset(
-                    "assets/burger.png",
-                    fit: BoxFit.contain,
-                  ),
+                  child: Image.asset("assets/burger.png", fit: BoxFit.contain),
                 ),
               ),
             ),
@@ -61,7 +80,10 @@ class BurgerPage extends StatelessWidget {
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.green[50],
                           borderRadius: BorderRadius.circular(20),
@@ -81,22 +103,45 @@ class BurgerPage extends StatelessWidget {
                   const Divider(),
                   const SizedBox(height: 16),
 
-                  // Ingredients Section
-                  const Text(
-                    "Ingredients",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  TabBar(
+                    controller: _tabController,
+                    labelColor: Colors.black,
+                    unselectedLabelColor: Colors.grey,
+                    indicatorColor: Colors.orange,
+                    tabs: const [
+                      Tab(text: "Ingredients"),
+                      Tab(text: "Description"),
+                    ],
                   ),
                   const SizedBox(height: 12),
-                  _buildIngredientItem("Brioche Bun"),
-                  _buildIngredientItem("Beef Patty (150g)"),
-                  _buildIngredientItem("Cheddar Cheese"),
-                  _buildIngredientItem("Crispy Lettuce"),
-                  _buildIngredientItem("Fresh Tomato Slices"),
-                  _buildIngredientItem("Pickles"),
-                  _buildIngredientItem("Special Sauce"),
+                  SizedBox(
+                    height: 300, // Adjust height as needed
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        // Ingredients Tab Content
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildIngredientItem("Brioche Bun"),
+                            _buildIngredientItem("Beef Patty (150g)"),
+                            _buildIngredientItem("Cheddar Cheese"),
+                            _buildIngredientItem("Crispy Lettuce"),
+                            _buildIngredientItem("Fresh Tomato Slices"),
+                            _buildIngredientItem("Pickles"),
+                            _buildIngredientItem("Special Sauce"),
+                          ],
+                        ),
+                        // Description Tab Content
+                        const SingleChildScrollView(
+                          child: Text(
+                            "A delicious classic burger made with a juicy beef patty, fresh vegetables, and special sauce, all served on a brioche bun. Perfect for any meal!",
+                            style: TextStyle(fontSize: 16, color: Colors.grey),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 32),
                 ],
               ),
@@ -114,13 +159,7 @@ class BurgerPage extends StatelessWidget {
         children: [
           Icon(Icons.check_circle_outline, color: Colors.orange[400], size: 20),
           const SizedBox(width: 12),
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey[800],
-            ),
-          ),
+          Text(text, style: TextStyle(fontSize: 16, color: Colors.grey[800])),
         ],
       ),
     );

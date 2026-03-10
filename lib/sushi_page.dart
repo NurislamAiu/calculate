@@ -1,7 +1,26 @@
 import 'package:flutter/material.dart';
 
-class SushiPage extends StatelessWidget {
+class SushiPage extends StatefulWidget {
   const SushiPage({super.key});
+
+  @override
+  State<SushiPage> createState() => _SushiPageState();
+}
+
+class _SushiPageState extends State<SushiPage> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,22 +100,45 @@ class SushiPage extends StatelessWidget {
                   const Divider(),
                   const SizedBox(height: 16),
 
-                  // Ingredients Section
-                  const Text(
-                    "Ingredients",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  TabBar(
+                    controller: _tabController,
+                    labelColor: Colors.black,
+                    unselectedLabelColor: Colors.grey,
+                    indicatorColor: Colors.orange,
+                    tabs: const [
+                      Tab(text: "Ingredients"),
+                      Tab(text: "Description"),
+                    ],
                   ),
                   const SizedBox(height: 12),
-                  _buildIngredientItem("Fresh Salmon"),
-                  _buildIngredientItem("Sushi Rice"),
-                  _buildIngredientItem("Nori Seaweed"),
-                  _buildIngredientItem("Avocado"),
-                  _buildIngredientItem("Cucumber"),
-                  _buildIngredientItem("Soy Sauce"),
-                  _buildIngredientItem("Wasabi & Ginger"),
+                  SizedBox(
+                    height: 300, // Adjust height as needed
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        // Ingredients Tab Content
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildIngredientItem("Fresh Salmon"),
+                            _buildIngredientItem("Sushi Rice"),
+                            _buildIngredientItem("Nori Seaweed"),
+                            _buildIngredientItem("Avocado"),
+                            _buildIngredientItem("Cucumber"),
+                            _buildIngredientItem("Soy Sauce"),
+                            _buildIngredientItem("Wasabi & Ginger"),
+                          ],
+                        ),
+                        // Description Tab Content
+                        const SingleChildScrollView(
+                          child: Text(
+                            "Delicious and fresh sushi rolls, expertly prepared with premium ingredients. A perfect balance of flavors and textures for a delightful meal.",
+                            style: TextStyle(fontSize: 16, color: Colors.grey),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 32),
                 ],
               ),
