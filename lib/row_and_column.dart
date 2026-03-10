@@ -18,6 +18,20 @@ class RowAndColumn extends StatelessWidget {
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: [
+          ///  TODO: PROFILE PAGE FOR USER
+          IconButton(
+            onPressed: () {},
+            icon: Container(
+              padding: EdgeInsets.all(5),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(100),
+                color: Colors.grey,
+              ),
+              child: Icon(Icons.person, size: 26, color: Colors.white),
+            ),
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20.0),
