@@ -33,9 +33,12 @@ class PizzaPage extends StatelessWidget {
                 ],
               ),
               child: ClipRRect(
-                child: Image.asset(
-                  "assets/pizza.png",
-                  fit: BoxFit.contain,
+                child: Hero(
+                  tag: "assets/pizza.png",
+                  child: Image.asset(
+                    "assets/pizza.png",
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
             ),

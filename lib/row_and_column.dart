@@ -9,35 +9,158 @@ class RowAndColumn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
+      backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        title: const Text(
+          "Menu",
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+        child: Column(
           children: [
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_)=> PizzaPage()));
-              },
-              child: Text("Pizza", style: TextStyle(color: Colors.white)),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            const SizedBox(height: 10),
+            const Text(
+              "Choose your favorite meal",
+              style: TextStyle(fontSize: 16, color: Colors.grey),
             ),
-
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_)=> BurgerPage()));
-              },
-              child: Text("Burger", style: TextStyle(color: Colors.white)),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-            ),
-
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_)=> SushiPage()));
-              },
-              child: Text("Sushi", style: TextStyle(color: Colors.white)),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+            const SizedBox(height: 30),
+            Expanded(
+              child: ListView(
+                physics: const BouncingScrollPhysics(),
+                children: [
+                  _buildMenuCard(
+                    context,
+                    title: "Pizza",
+                    imagePath: "assets/pizza.png",
+                    destination: const PizzaPage(),
+                    color: Colors.orange[50]!,
+                  ),
+                  const SizedBox(height: 20),
+                  _buildMenuCard(
+                    context,
+                    title: "Burger",
+                    imagePath: "assets/burger.png",
+                    destination: const BurgerPage(),
+                    color: Colors.red[50]!,
+                  ),
+                  const SizedBox(height: 20),
+                  _buildMenuCard(
+                    context,
+                    title: "Sushi",
+                    imagePath: "assets/sushi.png",
+                    destination: const SushiPage(),
+                    color: Colors.blue[50]!,
+                  ),
+                  const SizedBox(height: 30),
+                ],
+              ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMenuCard(
+    BuildContext context, {
+    required String title,
+    required String imagePath,
+    required Widget destination,
+    required Color color,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => destination),
+        );
+      },
+      child: Container(
+        height: 160,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: Stack(
+            children: [
+              // Background accent
+              Positioned(
+                right: -20,
+                bottom: -20,
+                child: Container(
+                  height: 120,
+                  width: 120,
+                  decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            title,
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Text(
+                                "View Details",
+                                style: TextStyle(
+                                  color: Colors.orange[800],
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const Icon(
+                                Icons.chevron_right,
+                                color: Colors.orange,
+                                size: 20,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    Hero(
+                      tag: imagePath,
+                      child: Image.asset(
+                        imagePath,
+                        height: 100,
+                        width: 100,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
