@@ -14,7 +14,7 @@ class ProfilePage extends StatelessWidget {
       ),
       body: Column(
         children: [
-          
+          Image.asset('assets/profile.png')
         ],
       )
     );
