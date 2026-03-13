@@ -20,7 +20,6 @@ class RowAndColumn extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
-          ///  TODO: PROFILE PAGE FOR USER
           IconButton(
             onPressed: () {
               Navigator.push(

@@ -7,7 +7,8 @@ class SushiPage extends StatefulWidget {
   State<SushiPage> createState() => _SushiPageState();
 }
 
-class _SushiPageState extends State<SushiPage> with SingleTickerProviderStateMixin {
+class _SushiPageState extends State<SushiPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -27,7 +28,10 @@ class _SushiPageState extends State<SushiPage> with SingleTickerProviderStateMix
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text("Sushi Details", style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          "Sushi Details",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
@@ -54,10 +58,7 @@ class _SushiPageState extends State<SushiPage> with SingleTickerProviderStateMix
               child: ClipRRect(
                 child: Hero(
                   tag: "assets/sushi.png",
-                  child: Image.asset(
-                    "assets/sushi.png",
-                    fit: BoxFit.contain,
-                  ),
+                  child: Image.asset("assets/sushi.png", fit: BoxFit.contain),
                 ),
               ),
             ),
@@ -80,7 +81,10 @@ class _SushiPageState extends State<SushiPage> with SingleTickerProviderStateMix
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.green[50],
                           borderRadius: BorderRadius.circular(20),
@@ -107,7 +111,7 @@ class _SushiPageState extends State<SushiPage> with SingleTickerProviderStateMix
                     indicatorColor: Colors.orange,
                     tabs: const [
                       Tab(text: "Ingredients"),
-                      Tab(text: "Description"),
+                      Tab(text: "Ratings"),
                     ],
                   ),
                   const SizedBox(height: 12),
@@ -130,11 +134,55 @@ class _SushiPageState extends State<SushiPage> with SingleTickerProviderStateMix
                           ],
                         ),
                         // Description Tab Content
-                        const SingleChildScrollView(
-                          child: Text(
-                            "Delicious and fresh sushi rolls, expertly prepared with premium ingredients. A perfect balance of flavors and textures for a delightful meal.",
-                            style: TextStyle(fontSize: 16, color: Colors.grey),
-                          ),
+                        ListView(
+                          children: [
+                            ListTile(
+                              leading: ClipOval(
+                                child: Image.asset(
+                                  "assets/profile.png",
+                                  width: 50,
+                                  height: 50,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              title: const Text("Squidward Tentacles"),
+                              subtitle: const Text(
+                                "I GOT FOOD POISONING FROM THIS",
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              trailing: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.star,
+                                    color: Colors.amber,
+                                    size: 16,
+                                  ),
+                                  Icon(
+                                    Icons.star_border_outlined,
+                                    color: Colors.amber,
+                                    size: 16,
+                                  ),
+                                  Icon(
+                                    Icons.star_border_outlined,
+                                    color: Colors.amber,
+                                    size: 16,
+                                  ),
+                                  Icon(
+                                    Icons.star_border_outlined,
+                                    color: Colors.amber,
+                                    size: 16,
+                                  ),
+                                  Icon(
+                                    Icons.star_border_outlined,
+                                    color: Colors.amber,
+                                    size: 16,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -156,13 +204,7 @@ class _SushiPageState extends State<SushiPage> with SingleTickerProviderStateMix
         children: [
           Icon(Icons.check_circle_outline, color: Colors.orange[400], size: 20),
           const SizedBox(width: 12),
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey[800],
-            ),
-          ),
+          Text(text, style: TextStyle(fontSize: 16, color: Colors.grey[800])),
         ],
       ),
     );

@@ -107,7 +107,7 @@ class _PizzaPageState extends State<PizzaPage> with SingleTickerProviderStateMix
                     indicatorColor: Colors.orange,
                     tabs: const [
                       Tab(text: "Ingredients"),
-                      Tab(text: "Description"),
+                      Tab(text: "Ratings"),
                     ],
                   ),
                   const SizedBox(height: 12),
@@ -130,11 +130,53 @@ class _PizzaPageState extends State<PizzaPage> with SingleTickerProviderStateMix
                           ],
                         ),
                         // Description Tab Content
-                        const SingleChildScrollView(
-                          child: Text(
-                            "A delicious classic pizza with a perfect blend of fresh tomato sauce, mozzarella cheese, and a variety of toppings, baked to perfection.",
-                            style: TextStyle(fontSize: 16, color: Colors.grey),
-                          ),
+                        ListView(
+                          children: [
+                            ListTile(
+                              leading: ClipOval(
+                                child: Image.asset(
+                                  "assets/profile.png",
+                                  width: 50,
+                                  height: 50,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              title: const Text("Squidward Tentacles"),
+                              subtitle: const Text("I LOVE THIS PIZZA",
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,),
+                              trailing: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.star,
+                                    color: Colors.amber,
+                                    size: 16,
+                                  ),
+                                  Icon(
+                                    Icons.star,
+                                    color: Colors.amber,
+                                    size: 16,
+                                  ),
+                                  Icon(
+                                    Icons.star,
+                                    color: Colors.amber,
+                                    size: 16,
+                                  ),
+                                  Icon(
+                                    Icons.star,
+                                    color: Colors.amber,
+                                    size: 16,
+                                  ),
+                                  Icon(
+                                    Icons.star,
+                                    color: Colors.amber,
+                                    size: 16,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),

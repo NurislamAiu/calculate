@@ -7,7 +7,8 @@ class BurgerPage extends StatefulWidget {
   State<BurgerPage> createState() => _BurgerPageState();
 }
 
-class _BurgerPageState extends State<BurgerPage> with SingleTickerProviderStateMixin {
+class _BurgerPageState extends State<BurgerPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -110,7 +111,7 @@ class _BurgerPageState extends State<BurgerPage> with SingleTickerProviderStateM
                     indicatorColor: Colors.orange,
                     tabs: const [
                       Tab(text: "Ingredients"),
-                      Tab(text: "Description"),
+                      Tab(text: "Ratings"),
                     ],
                   ),
                   const SizedBox(height: 12),
@@ -133,11 +134,53 @@ class _BurgerPageState extends State<BurgerPage> with SingleTickerProviderStateM
                           ],
                         ),
                         // Description Tab Content
-                        const SingleChildScrollView(
-                          child: Text(
-                            "A delicious classic burger made with a juicy beef patty, fresh vegetables, and special sauce, all served on a brioche bun. Perfect for any meal!",
-                            style: TextStyle(fontSize: 16, color: Colors.grey),
-                          ),
+                        ListView(
+                          children: [
+                            ListTile(
+                              leading: ClipOval(
+                                child: Image.asset(
+                                  "assets/profile.png",
+                                  width: 50,
+                                  height: 50,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              title: const Text("Squidward Tentacles"),
+                              subtitle: const Text("I HATE THIS BURGER",
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,),
+                              trailing: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.star,
+                                    color: Colors.amber,
+                                    size: 16,
+                                  ),
+                                  Icon(
+                                    Icons.star_border_outlined,
+                                    color: Colors.amber,
+                                    size: 16,
+                                  ),
+                                  Icon(
+                                    Icons.star_border_outlined,
+                                    color: Colors.amber,
+                                    size: 16,
+                                  ),
+                                  Icon(
+                                    Icons.star_border_outlined,
+                                    color: Colors.amber,
+                                    size: 16,
+                                  ),
+                                  Icon(
+                                    Icons.star_border_outlined,
+                                    color: Colors.amber,
+                                    size: 16,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
