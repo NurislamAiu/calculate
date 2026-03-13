@@ -1,5 +1,6 @@
 import 'package:example/burger_page.dart';
 import 'package:example/pizza_page.dart';
+import 'package:example/profile_page.dart';
 import 'package:example/sushi_page.dart';
 import 'package:flutter/material.dart';
 
@@ -21,7 +22,12 @@ class RowAndColumn extends StatelessWidget {
         actions: [
           ///  TODO: PROFILE PAGE FOR USER
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfilePage()),
+              );
+            },
             icon: Container(
               padding: EdgeInsets.all(5),
               decoration: BoxDecoration(
