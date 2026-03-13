@@ -5,14 +5,18 @@ class ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    
     return Scaffold(
-      body: ListView(
-        children: [
-          Text("Apple"),
-          Text("Banana"),
-          Text("Orange"),
-        ],
+      backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        backgroundColor: Colors.grey[50],
+        title: Text('Profile Page')
       ),
+      body: Column(
+        children: [
+          
+        ],
+      )
     );
   }
 }
