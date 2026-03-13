@@ -1,6 +1,5 @@
 import 'package:example/row_and_column.dart';
 import 'package:flutter/material.dart';
-import 'my_home_page.dart';
 
 void main() {
   runApp(const MyApp());

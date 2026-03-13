@@ -28,14 +28,7 @@ class RowAndColumn extends StatelessWidget {
                 MaterialPageRoute(builder: (context) => const ProfilePage()),
               );
             },
-            icon: Container(
-              padding: EdgeInsets.all(5),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(100),
-                color: Colors.grey,
-              ),
-              child: Icon(Icons.person, size: 26, color: Colors.white),
-            ),
+            icon: ClipOval(child: Image.asset("assets/profile.png")),
           ),
         ],
       ),
