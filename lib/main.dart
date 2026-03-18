@@ -1,4 +1,4 @@
-import 'package:example/row_and_column.dart';
+import 'package:example/home_page.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
 
-      home: const RowAndColumn(),
+      home: const HomePage(),
     );
   }
 }

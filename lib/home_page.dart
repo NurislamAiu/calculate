@@ -1,11 +1,14 @@
 import 'package:example/burger_page.dart';
+import 'package:example/cart_manager.dart';
 import 'package:example/pizza_page.dart';
 import 'package:example/profile_page.dart';
 import 'package:example/sushi_page.dart';
 import 'package:flutter/material.dart';
 
-class RowAndColumn extends StatelessWidget {
-  const RowAndColumn({super.key});
+import 'cart_page.dart';
+
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -20,6 +23,24 @@ class RowAndColumn extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
+          ListenableBuilder(
+            listenable: cartManager,
+            builder: (context, _) {
+              return Badge(
+                label: Text('${cartManager.totalQuantity}'),
+                isLabelVisible: cartManager.totalQuantity > 0,
+                child: IconButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const CartPage()),
+                    );
+                  },
+                  icon: const Icon(Icons.shopping_cart_outlined),
+                ),
+              );
+            },
+          ),
           IconButton(
             onPressed: () {
               Navigator.push(
