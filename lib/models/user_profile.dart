@@ -1,6 +1,5 @@
-/// Модель для одного элемента в списке "Recent Activity".
 class ActivityItem {
-  final String icon; // В Firebase здесь можно хранить название иконки, например "coffee"
+  final String icon;
   final String title;
   final String subtitle;
   final String time;
@@ -12,8 +11,6 @@ class ActivityItem {
     required this.time,
   });
 
-  // ЗАГОТОВКА ДЛЯ FIREBASE
-  /*
   factory ActivityItem.fromMap(Map<String, dynamic> map) {
     return ActivityItem(
       icon: map['icon'] ?? 'fastfood',
@@ -22,14 +19,12 @@ class ActivityItem {
       time: map['time'] ?? '',
     );
   }
-  */
 }
 
-/// Модель для данных профиля пользователя.
 class UserProfile {
   final String name;
   final String phone;
-  final String avatarUrl; // Путь к аватару
+  final String avatarUrl;
   final int purchases;
   final int loyaltyPoints;
   final String rank;
@@ -45,23 +40,20 @@ class UserProfile {
     required this.recentActivity,
   });
 
-  // ЗАГОТОВКА ДЛЯ FIREBASE
-  /*
-  factory UserProfile.fromFirestore(Map<String, dynamic> firestoreData) {
-    final activityList = firestoreData['recentActivity'] as List<dynamic>?;
+  factory UserProfile.fromMap(Map<String, dynamic> data) {
+    final activityList = data['recentActivity'] as List<dynamic>?;
     final activities = activityList != null
         ? activityList.map((activityData) => ActivityItem.fromMap(activityData)).toList()
         : <ActivityItem>[];
 
     return UserProfile(
-      name: firestoreData['name'] ?? 'No Name',
-      phone: firestoreData['phone'] ?? '',
-      avatarUrl: firestoreData['avatarUrl'] ?? 'assets/profile.png', // URL или путь
-      purchases: firestoreData['purchases'] ?? 0,
-      loyaltyPoints: firestoreData['loyaltyPoints'] ?? 0,
-      rank: firestoreData['rank'] ?? 'Bronze',
+      name: data['name'] ?? 'No Name',
+      phone: data['phone'] ?? '',
+      avatarUrl: data['avatarUrl'] ?? 'assets/profile.png',
+      purchases: data['purchases'] ?? 0,
+      loyaltyPoints: data['loyaltyPoints'] ?? 0,
+      rank: data['rank'] ?? 'Bronze',
       recentActivity: activities,
     );
   }
-  */
 }

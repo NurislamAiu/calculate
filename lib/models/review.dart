@@ -1,5 +1,3 @@
-/// [Review] - это класс-модель для одного отзыва.
-/// Он содержит информацию об авторе, тексте отзыва и поставленной оценке.
 class Review {
   final String author;
   final String text;
@@ -7,11 +5,7 @@ class Review {
 
   Review({required this.author, required this.text, required this.rating});
 
-  // ЗАГОТОВКА ДЛЯ FIREBASE: Шаг 2 (часть 1)
-  // Этот factory-конструктор позволяет создать экземпляр [Review]
-  // из данных (Map), полученных от Firestore.
-  // Firestore хранит данные в формате ключ-значение, который легко представить как Map.
-  /*
+  // Factory constructor to create a Review from a map (e.g., from Firestore)
   factory Review.fromMap(Map<String, dynamic> map) {
     return Review(
       author: map['author'] ?? 'Unknown Author',
@@ -19,5 +13,4 @@ class Review {
       rating: map['rating'] ?? 0,
     );
   }
-  */
 }

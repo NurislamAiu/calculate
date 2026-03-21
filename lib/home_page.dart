@@ -1,13 +1,20 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:example/cart_manager.dart';
 import 'package:example/profile_page.dart';
+import 'package:example/screens/item_detail_page.dart';
 import 'package:flutter/material.dart';
 
 import 'cart_page.dart';
-import 'screens/food_detail_page.dart'; // Импортируем новую универсальную страницу
+import 'models/food_item.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -61,35 +68,33 @@ class HomePage extends StatelessWidget {
             ),
             const SizedBox(height: 30),
             Expanded(
-              child: ListView(
-                physics: const BouncingScrollPhysics(),
-                children: [
-                  _buildMenuCard(
-                    context,
-                    title: "Pizza",
-                    imagePath: "assets/pizza.png",
-                    // Передаем foodId для загрузки данных
-                    destination: const FoodDetailPage(foodId: "pizza"),
-                    color: Colors.orange[50]!,
-                  ),
-                  const SizedBox(height: 20),
-                  _buildMenuCard(
-                    context,
-                    title: "Burger",
-                    imagePath: "assets/burger.png",
-                    destination: const FoodDetailPage(foodId: "burger"),
-                    color: Colors.red[50]!,
-                  ),
-                  const SizedBox(height: 20),
-                  _buildMenuCard(
-                    context,
-                    title: "Sushi",
-                    imagePath: "assets/sushi.png",
-                    destination: const FoodDetailPage(foodId: "sushi"),
-                    color: Colors.blue[50]!,
-                  ),
-                  const SizedBox(height: 30),
-                ],
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance.collection('foods').snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return const Center(child: Text('Something went wrong'));
+                  }
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return const Center(child: Text('No food items found.'));
+                  }
+
+                  final foodDocs = snapshot.data!.docs;
+
+                  return ListView.separated(
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: foodDocs.length,
+                    separatorBuilder: (context, index) => const SizedBox(height: 20),
+                    itemBuilder: (context, index) {
+                      final doc = foodDocs[index];
+                      final item = FoodItem.fromMap(doc.data() as Map<String, dynamic>);
+                      final color = _getColorForIndex(index);
+                      return FoodMenuCard(item: item, color: color);
+                    },
+                  );
+                },
               ),
             ),
           ],
@@ -98,18 +103,35 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuCard(
-    BuildContext context, {
-    required String title,
-    required String imagePath,
-    required Widget destination,
-    required Color color,
-  }) {
+  Color _getColorForIndex(int index) {
+    const colors = [
+      Color(0xFFFFF3E0), // orange[50]
+      Color(0xFFFFEBEE), // red[50]
+      Color(0xFFE3F2FD), // blue[50]
+    ];
+    return colors[index % colors.length];
+  }
+}
+
+class FoodMenuCard extends StatelessWidget {
+  final FoodItem item;
+  final Color color;
+
+  const FoodMenuCard({
+    super.key,
+    required this.item,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => destination),
+          MaterialPageRoute(
+            builder: (context) => ItemDetailPage(item: item),
+          ),
         );
       },
       child: Container(
@@ -129,7 +151,6 @@ class HomePage extends StatelessWidget {
           borderRadius: BorderRadius.circular(24),
           child: Stack(
             children: [
-              // Background accent
               Positioned(
                 right: -20,
                 bottom: -20,
@@ -152,7 +173,7 @@ class HomePage extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            title,
+                            item.name,
                             style: const TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
@@ -180,9 +201,9 @@ class HomePage extends StatelessWidget {
                       ),
                     ),
                     Hero(
-                      tag: imagePath,
+                      tag: item.imagePath,
                       child: Image.asset(
-                        imagePath,
+                        item.imagePath,
                         height: 100,
                         width: 100,
                         fit: BoxFit.contain,

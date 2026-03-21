@@ -1,14 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:example/services/auth_service.dart';
+import 'package:example/services/user_service.dart';
 import 'package:flutter/material.dart';
 import '../cart_manager.dart';
 import '../models/food_item.dart';
 import '../models/review.dart';
+import '../models/user_profile.dart';
 
-/// [ItemDetailPage] - это универсальный (шаблонный) виджет для отображения
-/// страницы с детальной информацией о продукте.
-/// Он принимает в конструктор объект [FoodItem] и строит UI на основе его данных.
-/// Это позволяет избежать дублирования кода для каждого продукта.
 class ItemDetailPage extends StatefulWidget {
-  /// [item] - объект, содержащий всю информацию о продукте для отображения.
   final FoodItem item;
 
   const ItemDetailPage({super.key, required this.item});
@@ -19,52 +18,59 @@ class ItemDetailPage extends StatefulWidget {
 
 class _ItemDetailPageState extends State<ItemDetailPage>
     with SingleTickerProviderStateMixin {
-  // Контроллер для управления вкладками "Ingredients" и "Ratings".
   late TabController _tabController;
-  // Контроллер для текстового поля ввода отзыва.
   final _reviewController = TextEditingController();
-  // Локальный список отзывов. Инициализируется изначальными отзывами из [widget.item.reviews].
-  // Позволяет добавлять новые отзывы без изменения исходного объекта [FoodItem].
-  late final List<Review> _reviews;
-  // Текущий рейтинг, который выбрал пользователь для нового отзыва.
   int _currentRating = 0;
+  String? _userName;
 
   @override
   void initState() {
     super.initState();
-    // Инициализация TabController.
     _tabController = TabController(length: 2, vsync: this);
-    // Создаем копию списка отзывов, чтобы его можно было изменять.
-    _reviews = List.from(widget.item.reviews);
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final user = AuthService().currentUser;
+    if (user != null) {
+      // We can use a one-time fetch here instead of a stream
+      final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+       if (doc.exists && doc.data() != null) {
+        final userProfile = UserProfile.fromMap(doc.data()!);
+        if (mounted) {
+          setState(() {
+            _userName = userProfile.name;
+          });
+        }
+       }
+    }
   }
 
   @override
   void dispose() {
-    // Освобождаем ресурсы контроллеров, когда виджет удаляется.
     _tabController.dispose();
     _reviewController.dispose();
     super.dispose();
   }
 
-  /// [_submitReview] - метод для добавления нового отзыва.
-  /// Он срабатывает при нажатии на кнопку "отправить".
   void _submitReview() {
-    // Проверяем, что пользователь ввел текст и поставил оценку.
-    if (_reviewController.text.isNotEmpty && _currentRating > 0) {
-      // Обновляем состояние виджета, чтобы перерисовать UI.
+    if (_reviewController.text.isNotEmpty &&
+        _currentRating > 0 &&
+        _userName != null) {
+      FirebaseFirestore.instance
+          .collection('reviews')
+          .doc(widget.item.name)
+          .collection('item_reviews')
+          .add({
+        'author': _userName, // Use the fetched user name
+        'text': _reviewController.text,
+        'rating': _currentRating,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+      _reviewController.clear();
       setState(() {
-        _reviews.add(
-          Review(
-            author: "New User", // В реальном приложении здесь было бы имя текущего пользователя.
-            text: _reviewController.text,
-            rating: _currentRating,
-          ),
-        );
-        // Очищаем поле ввода и сбрасываем рейтинг после отправки.
-        _reviewController.clear();
         _currentRating = 0;
       });
-      // Скрываем клавиатуру.
       FocusScope.of(context).unfocus();
     }
   }
@@ -74,7 +80,6 @@ class _ItemDetailPageState extends State<ItemDetailPage>
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        // Заголовок экрана строится динамически из имени продукта.
         title: Text(
           "${widget.item.name} Details",
           style: const TextStyle(fontWeight: FontWeight.bold),
@@ -84,7 +89,6 @@ class _ItemDetailPageState extends State<ItemDetailPage>
         foregroundColor: Colors.black,
         elevation: 0,
         actions: [
-          // Виджеты для управления количеством товара в корзине.
           ListenableBuilder(
             listenable: cartManager,
             builder: (context, _) {
@@ -107,7 +111,8 @@ class _ItemDetailPageState extends State<ItemDetailPage>
                   ),
                   IconButton(
                     onPressed: () {
-                      cartManager.addItem(widget.item.name, widget.item.imagePath, widget.item.price);
+                      cartManager.addItem(
+                          widget.item.name, widget.item.imagePath, widget.item.price);
                     },
                     icon: const Icon(Icons.add, color: Colors.black),
                   ),
@@ -121,7 +126,6 @@ class _ItemDetailPageState extends State<ItemDetailPage>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- Секция с изображением продукта ---
             Container(
               height: 250,
               width: double.infinity,
@@ -137,22 +141,17 @@ class _ItemDetailPageState extends State<ItemDetailPage>
               ),
               child: ClipRRect(
                 child: Hero(
-                  // Hero анимация для плавного перехода с главного экрана.
-                  // Тег должен быть уникальным для каждого продукта.
                   tag: widget.item.imagePath,
                   child: Image.asset(widget.item.imagePath, fit: BoxFit.contain),
                 ),
               ),
             ),
             const SizedBox(height: 24),
-
-            // --- Секция с информацией (название, цена и табы) ---
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // --- Название и цена ---
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -186,8 +185,6 @@ class _ItemDetailPageState extends State<ItemDetailPage>
                   const SizedBox(height: 16),
                   const Divider(),
                   const SizedBox(height: 16),
-
-                  // --- Переключатель вкладок ---
                   TabBar(
                     controller: _tabController,
                     labelColor: Colors.black,
@@ -199,62 +196,85 @@ class _ItemDetailPageState extends State<ItemDetailPage>
                     ],
                   ),
                   const SizedBox(height: 12),
-                  // --- Содержимое вкладок ---
                   SizedBox(
-                    height: 300, // Высота контейнера для вкладок
+                    height: 300,
                     child: TabBarView(
                       controller: _tabController,
                       children: [
-                        // --- 1. Вкладка "Ингредиенты" ---
                         ListView.builder(
                           itemCount: widget.item.ingredients.length,
                           itemBuilder: (context, index) {
-                            // Строим список ингредиентов на основе данных из [widget.item].
                             return _buildIngredientItem(widget.item.ingredients[index]);
                           },
                         ),
-                        // --- 2. Вкладка "Отзывы" ---
                         Column(
                           children: [
                             Expanded(
-                              // ListView.builder для отображения списка отзывов.
-                              child: ListView.builder(
-                                itemCount: _reviews.length,
-                                itemBuilder: (context, index) {
-                                  final review = _reviews[index];
-                                  return ListTile(
-                                    leading: ClipOval(
-                                      child: Image.asset(
-                                        "assets/profile.png",
-                                        width: 50,
-                                        height: 50,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                    title: Text(review.author),
-                                    subtitle: Text(
-                                      review.text,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    // Отображение рейтинга в виде звезд.
-                                    trailing: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: List.generate(5, (starIndex) {
-                                        return Icon(
-                                          starIndex < review.rating
-                                              ? Icons.star
-                                              : Icons.star_border_outlined,
-                                          color: Colors.amber,
-                                          size: 16,
-                                        );
-                                      }),
-                                    ),
+                              child: StreamBuilder<QuerySnapshot>(
+                                stream: FirebaseFirestore.instance
+                                    .collection('reviews')
+                                    .doc(widget.item.name)
+                                    .collection('item_reviews')
+                                    .orderBy('timestamp', descending: true)
+                                    .snapshots(),
+                                builder: (context, snapshot) {
+                                  if (snapshot.hasError) {
+                                    return const Text('Something went wrong');
+                                  }
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return const Center(
+                                        child: CircularProgressIndicator());
+                                  }
+
+                                  final reviews = snapshot.data!.docs.map((doc) {
+                                    final data =
+                                        doc.data() as Map<String, dynamic>;
+                                    return Review(
+                                      author: data['author'],
+                                      text: data['text'],
+                                      rating: data['rating'],
+                                    );
+                                  }).toList();
+
+                                  return ListView.builder(
+                                    itemCount: reviews.length,
+                                    itemBuilder: (context, index) {
+                                      final review = reviews[index];
+                                      return ListTile(
+                                        leading: ClipOval(
+                                          child: Image.asset(
+                                            "assets/profile.png",
+                                            width: 50,
+                                            height: 50,
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                        title: Text(review.author),
+                                        subtitle: Text(
+                                          review.text,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        trailing: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children:
+                                              List.generate(5, (starIndex) {
+                                            return Icon(
+                                              starIndex < review.rating
+                                                  ? Icons.star
+                                                  : Icons.star_border_outlined,
+                                              color: Colors.amber,
+                                              size: 16,
+                                            );
+                                          }),
+                                        ),
+                                      );
+                                    },
                                   );
                                 },
                               ),
                             ),
-                            // Поле для ввода нового отзыва.
                             _buildReviewInputField(),
                           ],
                         ),
@@ -270,12 +290,9 @@ class _ItemDetailPageState extends State<ItemDetailPage>
     );
   }
 
-  /// [_buildReviewInputField] - вспомогательный виджет для создания
-  /// поля ввода нового отзыва, включая звезды для рейтинга и кнопку отправки.
   Widget _buildReviewInputField() {
     return Column(
       children: [
-        // --- Звезды для выбора рейтинга ---
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(5, (index) {
@@ -285,7 +302,6 @@ class _ItemDetailPageState extends State<ItemDetailPage>
                 color: Colors.amber,
               ),
               onPressed: () {
-                // Обновляем состояние, чтобы перерисовать звезды.
                 setState(() {
                   _currentRating = index + 1;
                 });
@@ -293,7 +309,6 @@ class _ItemDetailPageState extends State<ItemDetailPage>
             );
           }),
         ),
-        // --- Поле для ввода текста отзыва ---
         TextFormField(
           controller: _reviewController,
           decoration: InputDecoration(
@@ -320,7 +335,6 @@ class _ItemDetailPageState extends State<ItemDetailPage>
                 color: Colors.orange,
               ),
             ),
-            // --- Кнопка отправки отзыва ---
             suffixIcon: IconButton(
               icon: const Icon(Icons.send),
               onPressed: _submitReview,
@@ -331,8 +345,6 @@ class _ItemDetailPageState extends State<ItemDetailPage>
     );
   }
 
-  /// [_buildIngredientItem] - вспомогательный виджет для отображения
-  /// одного пункта в списке ингредиентов.
   Widget _buildIngredientItem(String text) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),

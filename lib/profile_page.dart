@@ -1,3 +1,5 @@
+import 'package:example/services/auth_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'models/user_profile.dart';
 import 'services/user_service.dart';
@@ -11,18 +13,20 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   final UserProfileService _userService = UserProfileService();
-  late final Future<UserProfile> _userProfileFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _userProfileFuture = _userService.getUserProfile();
-  }
+  final AuthService _authService = AuthService();
+  final User? currentUser = FirebaseAuth.instance.currentUser;
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<UserProfile>(
-      future: _userProfileFuture,
+    if (currentUser == null) {
+      return const Scaffold(
+        body: Center(
+          child: Text("Not logged in."),
+        ),
+      );
+    }
+    return StreamBuilder<UserProfile>(
+      stream: _userService.getUserProfileStream(currentUser!.uid),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -56,14 +60,18 @@ class _ProfilePageState extends State<ProfilePage> {
         centerTitle: true,
         actions: [
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              _authService.signOut();
+              // Pop until we are at the root, so the AuthGate can take over
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            },
             icon: Container(
               padding: const EdgeInsets.all(5),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(100),
                 color: Colors.white.withOpacity(0.15),
               ),
-              child: const Icon(Icons.settings_outlined, color: Colors.white),
+              child: const Icon(Icons.logout, color: Colors.white),
             ),
           ),
         ],
@@ -75,28 +83,21 @@ class _ProfilePageState extends State<ProfilePage> {
               clipBehavior: Clip.none,
               alignment: Alignment.topCenter,
               children: [
-                // 1. Увеличиваем высоту шапки, чтобы все поместилось
                 _buildHeader(height: 380),
-
-                // 2. Информация о профиле больше не в Positioned.
-                // SafeArea и Padding обеспечивают правильный отступ.
                 SafeArea(
                   child: Padding(
                     padding: const EdgeInsets.only(top: 0.0),
                     child: _buildProfileInfo(user),
                   ),
                 ),
-
-                // 3. Карточка статистики позиционируется от НИЗА шапки.
                 Positioned(
-                  bottom: -80, // "Свешивается" на 50 пикселей вниз
+                  bottom: -80,
                   left: 20,
                   right: 20,
                   child: _buildStatsCard(user),
                 ),
               ],
             ),
-            // 4. Отступ, чтобы освободить место для "свисающей" карточки.
             const SizedBox(height: 70),
             _buildRecentActivitySection(user.recentActivity),
           ],
@@ -105,8 +106,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // --- Вспомогательные виджеты ---
-
+  // ... (All other _build methods remain the same)
   Widget _buildHeader({required double height}) {
     return Container(
       height: height,

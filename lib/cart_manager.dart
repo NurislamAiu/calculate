@@ -1,5 +1,4 @@
-// ЗАГОТОВКА ДЛЯ FIREBASE: Раскомментируйте
-// import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class CartItem {
@@ -15,8 +14,6 @@ class CartItem {
     this.quantity = 1,
   });
 
-  // ЗАГОТОВКА ДЛЯ FIREBASE: Конструктор для преобразования данных из Firestore
-  /*
   factory CartItem.fromMap(Map<String, dynamic> map) {
     return CartItem(
       name: map['name'] ?? 'No Name',
@@ -26,7 +23,6 @@ class CartItem {
     );
   }
 
-  // Метод для преобразования объекта в Map для записи в Firestore
   Map<String, dynamic> toMap() {
     return {
       'name': name,
@@ -35,23 +31,18 @@ class CartItem {
       'quantity': quantity,
     };
   }
-  */
 }
 
 class CartManager extends ChangeNotifier {
   List<CartItem> _items = [];
-  // ЗАГОТОВКА ДЛЯ FIREBASE: Хранение ID пользователя для запросов
-  // String? _userId;
+  String? _userId;
 
   List<CartItem> get items => _items;
 
   int get totalQuantity => _items.fold(0, (sum, item) => sum + item.quantity);
 
-  int get totalPrice =>
-      _items.fold(0, (sum, item) => sum + (item.price * item.quantity));
+  int get totalPrice => _items.fold(0, (sum, item) => sum + (item.price * item.quantity));
 
-  // ЗАГОТОВКА ДЛЯ FIREBASE: Метод для инициализации корзины из Firestore
-  /*
   Future<void> loadCart(String userId) async {
     _userId = userId;
     try {
@@ -65,15 +56,15 @@ class CartManager extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       print("Error loading cart: $e");
-      // Обработайте ошибку по своему усмотрению
     }
   }
-  */
 
   int getQuantity(String name) {
-    final index = _items.indexWhere((item) => item.name == name);
-    if (index >= 0) return _items[index].quantity;
-    return 0;
+    try {
+      return _items.firstWhere((item) => item.name == name).quantity;
+    } catch (e) {
+      return 0;
+    }
   }
 
   void addItem(String name, String imagePath, int price) {
@@ -83,8 +74,7 @@ class CartManager extends ChangeNotifier {
     } else {
       _items.add(CartItem(name: name, imagePath: imagePath, price: price));
     }
-    // ЗАГОТОВКА ДЛЯ FIREBASE: Синхронизация после изменения
-    // _syncItemToFirebase(name);
+    _syncItemToFirebase(_items.firstWhere((item) => item.name == name));
     notifyListeners();
   }
 
@@ -93,37 +83,58 @@ class CartManager extends ChangeNotifier {
     if (index >= 0) {
       if (_items[index].quantity > 1) {
         _items[index].quantity--;
+        _syncItemToFirebase(_items[index]);
       } else {
+        _deleteItemFromFirebase(_items[index]);
         _items.removeAt(index);
       }
-      // ЗАГОТОВКА ДЛЯ FIREBASE: Синхронизация после изменения
-      // _syncItemToFirebase(name);
       notifyListeners();
     }
   }
+  
+  Future<void> clearCart() async {
+    if (_userId == null) return;
 
-  // ЗАГОТОВКА ДЛЯ FIREBASE: Приватный метод для записи одного элемента в Firestore
-  /*
-  Future<void> _syncItemToFirebase(String name) async {
-    if (_userId == null) return; // Не синхронизируем, если пользователь не вошел
+    // Create a batch to delete all documents
+    final batch = FirebaseFirestore.instance.batch();
+    final cartCollection = FirebaseFirestore.instance
+        .collection('users')
+        .doc(_userId)
+        .collection('cart');
+    
+    final snapshot = await cartCollection.get();
+    for (final doc in snapshot.docs) {
+      batch.delete(doc.reference);
+    }
+    await batch.commit();
 
-    final index = _items.indexWhere((item) => item.name == name);
+    _items.clear();
+    notifyListeners();
+  }
+
+
+  Future<void> _syncItemToFirebase(CartItem item) async {
+    if (_userId == null) return;
+
     final itemDoc = FirebaseFirestore.instance
         .collection('users')
         .doc(_userId)
         .collection('cart')
-        .doc(name); // Используем имя как ID документа
+        .doc(item.name);
 
-    if (index >= 0) {
-      // Если элемент еще есть в корзине (добавление или уменьшение кол-ва)
-      await itemDoc.set(_items[index].toMap());
-    } else {
-      // Если элемент был полностью удален
-      await itemDoc.delete();
-    }
+    await itemDoc.set(item.toMap());
   }
-  */
+
+  Future<void> _deleteItemFromFirebase(CartItem item) async {
+    if (_userId == null) return;
+    
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(_userId)
+        .collection('cart')
+        .doc(item.name)
+        .delete();
+  }
 }
 
-// Global instance for simple state management
 final cartManager = CartManager();
