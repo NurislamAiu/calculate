@@ -1,56 +1,70 @@
 import 'package:flutter/material.dart';
-import 'cart_manager.dart';
+import '../cart_manager.dart';
+import '../models/food_item.dart';
+import '../models/review.dart';
 
-class Review {
-  final String author;
-  final String text;
-  final int rating;
+/// [ItemDetailPage] - это универсальный (шаблонный) виджет для отображения
+/// страницы с детальной информацией о продукте.
+/// Он принимает в конструктор объект [FoodItem] и строит UI на основе его данных.
+/// Это позволяет избежать дублирования кода для каждого продукта.
+class ItemDetailPage extends StatefulWidget {
+  /// [item] - объект, содержащий всю информацию о продукте для отображения.
+  final FoodItem item;
 
-  Review({required this.author, required this.text, required this.rating});
-}
-
-class PizzaPage extends StatefulWidget {
-  const PizzaPage({super.key});
+  const ItemDetailPage({super.key, required this.item});
 
   @override
-  State<PizzaPage> createState() => _PizzaPageState();
+  State<ItemDetailPage> createState() => _ItemDetailPageState();
 }
 
-class _PizzaPageState extends State<PizzaPage> with SingleTickerProviderStateMixin {
+class _ItemDetailPageState extends State<ItemDetailPage>
+    with SingleTickerProviderStateMixin {
+  // Контроллер для управления вкладками "Ingredients" и "Ratings".
   late TabController _tabController;
+  // Контроллер для текстового поля ввода отзыва.
   final _reviewController = TextEditingController();
-  final List<Review> _reviews = [
-    Review(author: "Squidward Tentacles", text: "I LOVE THIS PIZZA", rating: 5),
-  ];
+  // Локальный список отзывов. Инициализируется изначальными отзывами из [widget.item.reviews].
+  // Позволяет добавлять новые отзывы без изменения исходного объекта [FoodItem].
+  late final List<Review> _reviews;
+  // Текущий рейтинг, который выбрал пользователь для нового отзыва.
   int _currentRating = 0;
 
   @override
   void initState() {
     super.initState();
+    // Инициализация TabController.
     _tabController = TabController(length: 2, vsync: this);
+    // Создаем копию списка отзывов, чтобы его можно было изменять.
+    _reviews = List.from(widget.item.reviews);
   }
 
   @override
   void dispose() {
+    // Освобождаем ресурсы контроллеров, когда виджет удаляется.
     _tabController.dispose();
     _reviewController.dispose();
     super.dispose();
   }
 
+  /// [_submitReview] - метод для добавления нового отзыва.
+  /// Он срабатывает при нажатии на кнопку "отправить".
   void _submitReview() {
+    // Проверяем, что пользователь ввел текст и поставил оценку.
     if (_reviewController.text.isNotEmpty && _currentRating > 0) {
+      // Обновляем состояние виджета, чтобы перерисовать UI.
       setState(() {
         _reviews.add(
           Review(
-            author: "New User", // In a real app, you'd get the current user's name
+            author: "New User", // В реальном приложении здесь было бы имя текущего пользователя.
             text: _reviewController.text,
             rating: _currentRating,
           ),
         );
+        // Очищаем поле ввода и сбрасываем рейтинг после отправки.
         _reviewController.clear();
         _currentRating = 0;
       });
-      // Hide the keyboard
+      // Скрываем клавиатуру.
       FocusScope.of(context).unfocus();
     }
   }
@@ -60,21 +74,26 @@ class _PizzaPageState extends State<PizzaPage> with SingleTickerProviderStateMix
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text("Pizza Details", style: TextStyle(fontWeight: FontWeight.bold)),
+        // Заголовок экрана строится динамически из имени продукта.
+        title: Text(
+          "${widget.item.name} Details",
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
         actions: [
+          // Виджеты для управления количеством товара в корзине.
           ListenableBuilder(
             listenable: cartManager,
             builder: (context, _) {
-              final quantity = cartManager.getQuantity("Pizza");
+              final quantity = cartManager.getQuantity(widget.item.name);
               return Row(
                 children: [
                   IconButton(
                     onPressed: () {
-                      cartManager.removeItem("Pizza");
+                      cartManager.removeItem(widget.item.name);
                     },
                     icon: const Icon(Icons.remove, color: Colors.black),
                   ),
@@ -88,7 +107,7 @@ class _PizzaPageState extends State<PizzaPage> with SingleTickerProviderStateMix
                   ),
                   IconButton(
                     onPressed: () {
-                      cartManager.addItem("Pizza", "assets/pizza.png", 5000);
+                      cartManager.addItem(widget.item.name, widget.item.imagePath, widget.item.price);
                     },
                     icon: const Icon(Icons.add, color: Colors.black),
                   ),
@@ -102,7 +121,7 @@ class _PizzaPageState extends State<PizzaPage> with SingleTickerProviderStateMix
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image Section
+            // --- Секция с изображением продукта ---
             Container(
               height: 250,
               width: double.infinity,
@@ -118,41 +137,44 @@ class _PizzaPageState extends State<PizzaPage> with SingleTickerProviderStateMix
               ),
               child: ClipRRect(
                 child: Hero(
-                  tag: "assets/pizza.png",
-                  child: Image.asset(
-                    "assets/pizza.png",
-                    fit: BoxFit.contain,
-                  ),
+                  // Hero анимация для плавного перехода с главного экрана.
+                  // Тег должен быть уникальным для каждого продукта.
+                  tag: widget.item.imagePath,
+                  child: Image.asset(widget.item.imagePath, fit: BoxFit.contain),
                 ),
               ),
             ),
             const SizedBox(height: 24),
 
-            // Info Section
+            // --- Секция с информацией (название, цена и табы) ---
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // --- Название и цена ---
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        "Pizza",
-                        style: TextStyle(
+                      Text(
+                        widget.item.name,
+                        style: const TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.green[50],
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: const Text(
-                          "5000 KZT",
-                          style: TextStyle(
+                        child: Text(
+                          "${widget.item.price} KZT",
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: Colors.green,
@@ -165,6 +187,7 @@ class _PizzaPageState extends State<PizzaPage> with SingleTickerProviderStateMix
                   const Divider(),
                   const SizedBox(height: 16),
 
+                  // --- Переключатель вкладок ---
                   TabBar(
                     controller: _tabController,
                     labelColor: Colors.black,
@@ -176,28 +199,25 @@ class _PizzaPageState extends State<PizzaPage> with SingleTickerProviderStateMix
                     ],
                   ),
                   const SizedBox(height: 12),
+                  // --- Содержимое вкладок ---
                   SizedBox(
-                    height: 300, // Adjust height as needed
+                    height: 300, // Высота контейнера для вкладок
                     child: TabBarView(
                       controller: _tabController,
                       children: [
-                        // Ingredients Tab Content
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildIngredientItem("Fresh Tomato Sauce"),
-                            _buildIngredientItem("Mozzarella Cheese"),
-                            _buildIngredientItem("Spicy Pepperoni"),
-                            _buildIngredientItem("Sliced Mushrooms"),
-                            _buildIngredientItem("Green Bell Peppers"),
-                            _buildIngredientItem("Black Olives"),
-                            _buildIngredientItem("Italian Oregano"),
-                          ],
+                        // --- 1. Вкладка "Ингредиенты" ---
+                        ListView.builder(
+                          itemCount: widget.item.ingredients.length,
+                          itemBuilder: (context, index) {
+                            // Строим список ингредиентов на основе данных из [widget.item].
+                            return _buildIngredientItem(widget.item.ingredients[index]);
+                          },
                         ),
-                        // Description Tab Content
+                        // --- 2. Вкладка "Отзывы" ---
                         Column(
                           children: [
                             Expanded(
+                              // ListView.builder для отображения списка отзывов.
                               child: ListView.builder(
                                 itemCount: _reviews.length,
                                 itemBuilder: (context, index) {
@@ -217,6 +237,7 @@ class _PizzaPageState extends State<PizzaPage> with SingleTickerProviderStateMix
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                     ),
+                                    // Отображение рейтинга в виде звезд.
                                     trailing: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: List.generate(5, (starIndex) {
@@ -233,6 +254,7 @@ class _PizzaPageState extends State<PizzaPage> with SingleTickerProviderStateMix
                                 },
                               ),
                             ),
+                            // Поле для ввода нового отзыва.
                             _buildReviewInputField(),
                           ],
                         ),
@@ -248,9 +270,12 @@ class _PizzaPageState extends State<PizzaPage> with SingleTickerProviderStateMix
     );
   }
 
+  /// [_buildReviewInputField] - вспомогательный виджет для создания
+  /// поля ввода нового отзыва, включая звезды для рейтинга и кнопку отправки.
   Widget _buildReviewInputField() {
     return Column(
       children: [
+        // --- Звезды для выбора рейтинга ---
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(5, (index) {
@@ -260,6 +285,7 @@ class _PizzaPageState extends State<PizzaPage> with SingleTickerProviderStateMix
                 color: Colors.amber,
               ),
               onPressed: () {
+                // Обновляем состояние, чтобы перерисовать звезды.
                 setState(() {
                   _currentRating = index + 1;
                 });
@@ -267,6 +293,7 @@ class _PizzaPageState extends State<PizzaPage> with SingleTickerProviderStateMix
             );
           }),
         ),
+        // --- Поле для ввода текста отзыва ---
         TextFormField(
           controller: _reviewController,
           decoration: InputDecoration(
@@ -293,6 +320,7 @@ class _PizzaPageState extends State<PizzaPage> with SingleTickerProviderStateMix
                 color: Colors.orange,
               ),
             ),
+            // --- Кнопка отправки отзыва ---
             suffixIcon: IconButton(
               icon: const Icon(Icons.send),
               onPressed: _submitReview,
@@ -303,6 +331,8 @@ class _PizzaPageState extends State<PizzaPage> with SingleTickerProviderStateMix
     );
   }
 
+  /// [_buildIngredientItem] - вспомогательный виджет для отображения
+  /// одного пункта в списке ингредиентов.
   Widget _buildIngredientItem(String text) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
@@ -310,13 +340,7 @@ class _PizzaPageState extends State<PizzaPage> with SingleTickerProviderStateMix
         children: [
           Icon(Icons.check_circle_outline, color: Colors.orange[400], size: 20),
           const SizedBox(width: 12),
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey[800],
-            ),
-          ),
+          Text(text, style: TextStyle(fontSize: 16, color: Colors.grey[800])),
         ],
       ),
     );

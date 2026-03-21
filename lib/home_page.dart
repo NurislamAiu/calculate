@@ -1,11 +1,9 @@
-import 'package:example/burger_page.dart';
 import 'package:example/cart_manager.dart';
-import 'package:example/pizza_page.dart';
 import 'package:example/profile_page.dart';
-import 'package:example/sushi_page.dart';
 import 'package:flutter/material.dart';
 
 import 'cart_page.dart';
+import 'screens/food_detail_page.dart'; // Импортируем новую универсальную страницу
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -70,7 +68,8 @@ class HomePage extends StatelessWidget {
                     context,
                     title: "Pizza",
                     imagePath: "assets/pizza.png",
-                    destination: const PizzaPage(),
+                    // Передаем foodId для загрузки данных
+                    destination: const FoodDetailPage(foodId: "pizza"),
                     color: Colors.orange[50]!,
                   ),
                   const SizedBox(height: 20),
@@ -78,7 +77,7 @@ class HomePage extends StatelessWidget {
                     context,
                     title: "Burger",
                     imagePath: "assets/burger.png",
-                    destination: const BurgerPage(),
+                    destination: const FoodDetailPage(foodId: "burger"),
                     color: Colors.red[50]!,
                   ),
                   const SizedBox(height: 20),
@@ -86,7 +85,7 @@ class HomePage extends StatelessWidget {
                     context,
                     title: "Sushi",
                     imagePath: "assets/sushi.png",
-                    destination: const SushiPage(),
+                    destination: const FoodDetailPage(foodId: "sushi"),
                     color: Colors.blue[50]!,
                   ),
                   const SizedBox(height: 30),
