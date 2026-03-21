@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "729640954226",
+    "project_id": "paris-brest-3b79b",
+    "storage_bucket": "paris-brest-3b79b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:729640954226:android:b5074caaf75652ae9ed5eb",
+        "android_client_info": {
+          "package_name": "com.example.example"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBUWOJes9VjdKOrI8VRgIoxTrOyOh8wvnA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

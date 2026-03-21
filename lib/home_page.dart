@@ -18,7 +18,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   String _selectedCategory = 'All';
-  String? _avatarUrl; // <-- State variable to hold the avatar URL
+  String? _avatarUrl; 
 
   @override
   void initState() {
@@ -26,11 +26,9 @@ class _HomePageState extends State<HomePage> {
     _loadUserData();
   }
 
-  // --- New method to fetch all user data ---
   Future<void> _loadUserData() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      // Load cart and user profile concurrently
       await Future.wait([
         cartManager.loadCart(user.uid),
         _loadUserProfile(user.uid),
@@ -38,7 +36,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // --- New method to specifically fetch the profile ---
   Future<void> _loadUserProfile(String uid) async {
     try {
       final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
@@ -52,10 +49,9 @@ class _HomePageState extends State<HomePage> {
       }
     } catch (e) {
       print("Error loading user profile on home page: $e");
-      // Handle error, maybe set a default avatar
       if (mounted) {
         setState(() {
-          _avatarUrl = 'assets/profile.jpg';
+          _avatarUrl = 'assets/profile.png';
         });
       }
     }
@@ -66,12 +62,11 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     const Color mainBrown = Color(0xFF79573C);
 
-    // --- Dynamically build the avatar image ---
     ImageProvider avatarImage;
     if (_avatarUrl != null && _avatarUrl!.startsWith('http')) {
       avatarImage = NetworkImage(_avatarUrl!);
     } else {
-      avatarImage = const AssetImage('assets/profile.png'); // Default
+      avatarImage = const AssetImage('assets/profile.png');
     }
 
     return Scaffold(
@@ -79,24 +74,6 @@ class _HomePageState extends State<HomePage> {
         leadingWidth: 0,
         title: const Text("Menu"),
         actions: [
-          ListenableBuilder(
-            listenable: cartManager,
-            builder: (context, _) {
-              return Badge(
-                label: Text('${cartManager.totalQuantity}'),
-                isLabelVisible: cartManager.totalQuantity > 0,
-                child: IconButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const CartPage()),
-                    );
-                  },
-                  icon: const Icon(Icons.shopping_cart_outlined, size: 28),
-                ),
-              );
-            },
-          ),
           Padding(
             padding: const EdgeInsets.only(right: 16.0, left: 8.0),
             child: GestureDetector(
@@ -106,7 +83,6 @@ class _HomePageState extends State<HomePage> {
                   MaterialPageRoute(builder: (context) => const ProfilePage()),
                 );
               },
-              // --- Use the dynamic avatarImage here ---
               child: CircleAvatar(
                 radius: 20,
                 backgroundImage: avatarImage,
@@ -159,7 +135,7 @@ class _HomePageState extends State<HomePage> {
                 final foodDocs = snapshot.data!.docs;
 
                 return ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 80), // Added bottom padding to not hide items behind FAB
                   physics: const BouncingScrollPhysics(),
                   itemCount: foodDocs.length,
                   itemBuilder: (context, index) {
@@ -172,6 +148,27 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
         ],
+      ),
+      // --- New Floating Action Button for Cart ---
+      floatingActionButton: ListenableBuilder(
+        listenable: cartManager,
+        builder: (context, _) {
+          return FloatingActionButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CartPage()),
+              );
+            },
+            backgroundColor: mainBrown,
+            child: Badge(
+              label: Text('${cartManager.totalQuantity}'),
+              isLabelVisible: cartManager.totalQuantity > 0,
+              backgroundColor: Colors.red,
+              child: const Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 28),
+            ),
+          );
+        },
       ),
     );
   }
