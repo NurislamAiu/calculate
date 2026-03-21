@@ -1,4 +1,5 @@
 import 'package:example/services/auth_service.dart';
+import 'package:example/screens/edit_profile_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'models/user_profile.dart';
@@ -44,7 +45,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget _buildProfileScaffold(BuildContext context, UserProfile user) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -55,25 +55,43 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
         title: const Text(
           'Profile',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         actions: [
           IconButton(
             onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EditProfilePage(userProfile: user),
+                ),
+              );
+            },
+            icon: Container(
+              padding: const EdgeInsets.all(5),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(100),
+                color: Colors.white.withOpacity(0.2),
+              ),
+              child: const Icon(Icons.edit, color: Colors.white, size: 20),
+            ),
+          ),
+          IconButton(
+            onPressed: () {
               _authService.signOut();
-              // Pop until we are at the root, so the AuthGate can take over
               Navigator.of(context).popUntil((route) => route.isFirst);
             },
             icon: Container(
               padding: const EdgeInsets.all(5),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(100),
-                color: Colors.white.withOpacity(0.15),
+                color: Colors.white.withOpacity(0.2),
               ),
-              child: const Icon(Icons.logout, color: Colors.white),
+              child: const Icon(Icons.logout, color: Colors.white, size: 20),
             ),
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: SingleChildScrollView(
@@ -98,7 +116,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ],
             ),
-            const SizedBox(height: 70),
+            const SizedBox(height: 100),
             _buildRecentActivitySection(user.recentActivity),
           ],
         ),
@@ -106,14 +124,13 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // ... (All other _build methods remain the same)
   Widget _buildHeader({required double height}) {
     return Container(
       height: height,
       width: double.infinity,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xFF473230), Color(0xAE473230)],
+          colors: [Color(0xFF79573C), Color(0xFFA1887F)], // Main Brown to a lighter shade
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -126,6 +143,13 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildProfileInfo(UserProfile user) {
+    ImageProvider avatarImage;
+    if (user.avatarUrl.startsWith('http')) {
+      avatarImage = NetworkImage(user.avatarUrl);
+    } else {
+      avatarImage = AssetImage(user.avatarUrl);
+    }
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -143,8 +167,8 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             child: CircleAvatar(
               radius: 50,
-              backgroundImage: AssetImage(user.avatarUrl),
-              backgroundColor: Colors.grey,
+              backgroundImage: avatarImage,
+              backgroundColor: Colors.grey[200],
             ),
           ),
         ),
@@ -152,7 +176,7 @@ class _ProfilePageState extends State<ProfilePage> {
         Text(
           user.name,
           style: const TextStyle(
-            fontSize: 24,
+            fontSize: 26,
             fontWeight: FontWeight.bold,
             color: Colors.white,
             letterSpacing: 0.5,
@@ -166,11 +190,11 @@ class _ProfilePageState extends State<ProfilePage> {
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
-            user.phone,
+            user.phone.isEmpty ? "No phone" : user.phone,
             style: const TextStyle(
-              fontSize: 14,
+              fontSize: 15,
               color: Colors.white,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ),
@@ -186,7 +210,7 @@ class _ProfilePageState extends State<ProfilePage> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withOpacity(0.04),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -195,7 +219,7 @@ class _ProfilePageState extends State<ProfilePage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildStatColumn("Purchases", (user.purchases / 1000).toStringAsFixed(0) + "K", "₸"),
+          _buildStatColumn("Purchases", "${(user.purchases / 1000).toStringAsFixed(0)}K", "₸"),
           Container(height: 40, width: 1, color: Colors.grey[200]),
           _buildStatColumn("Loyalty", user.loyaltyPoints.toString(), "Pts"),
           Container(height: 40, width: 1, color: Colors.grey[200]),
@@ -225,6 +249,8 @@ class _ProfilePageState extends State<ProfilePage> {
             ],
           ),
           const SizedBox(height: 16),
+          if (activities.isEmpty)
+            const Center(child: Text("No recent activity", style: TextStyle(color: Colors.grey))),
           ...activities.map((item) => _buildModernActivityItem(item)).toList(),
           const SizedBox(height: 40),
         ],
@@ -259,13 +285,14 @@ class _ProfilePageState extends State<ProfilePage> {
   };
 
   final Map<String, Color> _colorMap = {
-    'coffee': const Color(0xFFF59E0B),
+    'coffee': const Color(0xFF79573C), 
     'local_pizza': const Color(0xFF10B981),
     'set_meal': const Color(0xFF3B82F6),
     'fastfood': const Color(0xFFEF4444),
   };
 
   Widget _buildModernActivityItem(ActivityItem item) {
+    const Color mainBrown = Color(0xFF79573C);
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
@@ -279,10 +306,10 @@ class _ProfilePageState extends State<ProfilePage> {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: (_colorMap[item.icon] ?? Colors.grey).withOpacity(0.12),
+              color: (_colorMap[item.icon] ?? mainBrown).withOpacity(0.12),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Icon(_iconMap[item.icon] ?? Icons.help, color: _colorMap[item.icon] ?? Colors.grey, size: 28),
+            child: Icon(_iconMap[item.icon] ?? Icons.fastfood, color: _colorMap[item.icon] ?? mainBrown, size: 28),
           ),
           const SizedBox(width: 16),
           Expanded(

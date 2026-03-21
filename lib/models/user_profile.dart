@@ -49,7 +49,7 @@ class UserProfile {
     return UserProfile(
       name: data['name'] ?? 'No Name',
       phone: data['phone'] ?? '',
-      avatarUrl: data['avatarUrl'] ?? 'assets/profile.png',
+      avatarUrl: data['avatarUrl'] ?? 'assets/profile.jpg',
       purchases: data['purchases'] ?? 0,
       loyaltyPoints: data['loyaltyPoints'] ?? 0,
       rank: data['rank'] ?? 'Bronze',

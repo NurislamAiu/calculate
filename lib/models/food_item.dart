@@ -3,12 +3,14 @@ class FoodItem {
   final String imagePath;
   final int price;
   final List<String> ingredients;
+  final String category; // <-- New field for filtering
 
   FoodItem({
     required this.name,
     required this.imagePath,
     required this.price,
     required this.ingredients,
+    required this.category,
   });
 
   factory FoodItem.fromMap(Map<String, dynamic> data) {
@@ -17,6 +19,7 @@ class FoodItem {
       imagePath: data['imagePath'] ?? '',
       price: data['price'] ?? 0,
       ingredients: List<String>.from(data['ingredients'] ?? []),
+      category: data['category'] ?? 'Other', // <-- Read the new field
     );
   }
 }

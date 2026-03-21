@@ -1,8 +1,11 @@
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import '../models/user_profile.dart';
 
 class UserProfileService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
 
   // Get user profile stream
   Stream<UserProfile> getUserProfileStream(String userId) {
@@ -10,18 +13,15 @@ class UserProfileService {
       if (snapshot.exists && snapshot.data() != null) {
         return UserProfile.fromMap(snapshot.data()!);
       } else {
-        // You might want to create a default profile here or handle this case in the UI
         throw Exception("User profile not found");
       }
     });
   }
 
   // Create or update user profile data
-  // This can be called after registration
   Future<void> createUserProfile(String userId, String email) async {
-    // We use a Map to create the data
     Map<String, dynamic> userProfileData = {
-      'name': email.split('@')[0], // A default name from the email
+      'name': email.split('@')[0], 
       'phone': '',
       'avatarUrl': 'assets/profile.png',
       'purchases': 0,
@@ -29,8 +29,34 @@ class UserProfileService {
       'rank': 'Bronze',
       'recentActivity': [],
     };
-
-    // Use .set() to create the document if it doesn't exist
     await _firestore.collection('users').doc(userId).set(userProfileData);
+  }
+
+  // Upload avatar to Firebase Storage
+  Future<String> uploadAvatar(String userId, File imageFile) async {
+    try {
+      // Create a reference to the location you want to upload to in firebase storage
+      final ref = _storage.ref().child('user_avatars').child('$userId.jpg');
+      
+      // Upload the file
+      final uploadTask = await ref.putFile(imageFile);
+      
+      // Get the download URL
+      final downloadUrl = await uploadTask.ref.getDownloadURL();
+      return downloadUrl;
+    } catch (e) {
+      print("Error uploading avatar: $e");
+      rethrow;
+    }
+  }
+
+  // Update user profile fields (name, phone, avatarUrl)
+  Future<void> updateUserProfile(String userId, Map<String, dynamic> data) async {
+    try {
+      await _firestore.collection('users').doc(userId).update(data);
+    } catch (e) {
+      print("Error updating profile: $e");
+      rethrow;
+    }
   }
 }
