@@ -1,3 +1,4 @@
+import 'package:example/screens/checkout_page.dart';
 import 'package:flutter/material.dart';
 import 'cart_manager.dart';
 
@@ -132,7 +133,6 @@ class CartPage extends StatelessWidget {
                   ],
                 ),
                 child: SafeArea(
-                  top: false,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -158,17 +158,12 @@ class CartPage extends StatelessWidget {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Checkout successful! Delicious food is on the way 🚚', style: TextStyle(fontSize: 16)),
-                                backgroundColor: Colors.green,
-                                behavior: SnackBarBehavior.floating,
-                              ),
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const CheckoutPage()),
                             );
-                            cartManager.clearCart();
-                            Navigator.pop(context);
                           },
-                          child: const Text('Checkout', style: TextStyle(fontSize: 18)),
+                          child: const Text('Go to Checkout', style: TextStyle(fontSize: 18)),
                         ),
                       ),
                     ],

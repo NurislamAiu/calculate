@@ -16,6 +16,7 @@ class _AuthPageState extends State<AuthPage> {
   bool _isLogin = true;
   bool _isLoading = false;
   String? _errorMessage;
+  String _selectedRole = 'user'; // 'user' or 'employee'
 
   void _toggleAuthMode() {
     setState(() {
@@ -30,17 +31,20 @@ class _AuthPageState extends State<AuthPage> {
       _errorMessage = null;
     });
 
+    String email = _emailController.text.trim();
+    String password = _passwordController.text.trim();
+
+    // Check for special employee credentials
+    if (email == 'parisbrestulydala' && password == '16281628') {
+      email = 'parisbrestulydala@food.com'; // Add a mock domain for Firebase
+    }
+
     try {
       if (_isLogin) {
-        await _authService.signInWithEmail(
-          _emailController.text,
-          _passwordController.text,
-        );
+        await _authService.signInWithEmail(email, password);
       } else {
-        await _authService.registerWithEmail(
-          _emailController.text,
-          _passwordController.text,
-        );
+        // Use the selected role during registration
+        await _authService.registerWithEmail(email, password, role: _selectedRole);
       }
     } catch (e) {
       setState(() {
@@ -114,11 +118,65 @@ class _AuthPageState extends State<AuthPage> {
                 ),
                 const SizedBox(height: 40),
 
+                // Role Selection for Registration
+                if (!_isLogin)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 24),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.grey[200]!),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => setState(() => _selectedRole = 'user'),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: _selectedRole == 'user' ? mainBrown : Colors.transparent,
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              child: Text(
+                                'User',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: _selectedRole == 'user' ? Colors.white : Colors.grey,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => setState(() => _selectedRole = 'employee'),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: _selectedRole == 'employee' ? mainBrown : Colors.transparent,
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              child: Text(
+                                'Employee',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: _selectedRole == 'employee' ? Colors.white : Colors.grey,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
                 TextField(
                   controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(
-                    labelText: 'Email',
+                    labelText: 'Email or Username',
                     hintText: 'hello@example.com',
                     prefixIcon: Icon(Icons.email_rounded),
                   ),

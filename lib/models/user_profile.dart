@@ -28,6 +28,7 @@ class UserProfile {
   final int purchases;
   final int loyaltyPoints;
   final String rank;
+  final String role; // 'user' or 'employee'
   final List<ActivityItem> recentActivity;
 
   UserProfile({
@@ -37,6 +38,7 @@ class UserProfile {
     required this.purchases,
     required this.loyaltyPoints,
     required this.rank,
+    required this.role,
     required this.recentActivity,
   });
 
@@ -53,6 +55,7 @@ class UserProfile {
       purchases: data['purchases'] ?? 0,
       loyaltyPoints: data['loyaltyPoints'] ?? 0,
       rank: data['rank'] ?? 'Bronze',
+      role: data['role'] ?? 'user',
       recentActivity: activities,
     );
   }

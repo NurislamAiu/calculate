@@ -21,17 +21,17 @@ class AuthService {
     }
   }
 
-  // Register with email and password
-  Future<UserCredential> registerWithEmail(String email, String password) async {
+  // Register with email and password, optionally with a role
+  Future<UserCredential> registerWithEmail(String email, String password, {String role = 'user'}) async {
     try {
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      // After creating the user, create a new document for them in the 'users' collection
+      // Create a user profile with the given role
       if (userCredential.user != null) {
-        await _userProfileService.createUserProfile(userCredential.user!.uid, email);
+        await _userProfileService.createUserProfile(userCredential.user!.uid, email, role: role);
       }
 
       return userCredential;

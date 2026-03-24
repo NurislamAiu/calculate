@@ -34,10 +34,10 @@ class _ItemDetailPageState extends State<ItemDetailPage>
     if (user != null) {
       final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
       if (doc.exists && doc.data() != null) {
-        final userProfile = UserProfile.fromMap(doc.data()!);
+        final data = doc.data()!;
         if (mounted) {
           setState(() {
-            _userName = userProfile.name;
+            _userName = data['name'];
           });
         }
       }
@@ -78,11 +78,10 @@ class _ItemDetailPageState extends State<ItemDetailPage>
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          // --- Immersive App Bar with NEW Image Style ---
           SliverAppBar(
-            expandedHeight: 280, // Slightly reduced height
+            expandedHeight: 280,
             pinned: true,
-            backgroundColor: const Color(0xFFF8F9FA), // Light background
+            backgroundColor: const Color(0xFFF8F9FA),
             elevation: 0,
             leading: Padding(
               padding: const EdgeInsets.all(8.0),
@@ -96,13 +95,12 @@ class _ItemDetailPageState extends State<ItemDetailPage>
             ),
             flexibleSpace: FlexibleSpaceBar(
               background: Hero(
-                tag: widget.item.imagePath,
-                // NEW: Framed image with padding and rounded corners
+                tag: widget.item.name,
                 child: Container(
                   padding: const EdgeInsets.fromLTRB(40, 80, 40, 40),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.transparent,
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
@@ -116,7 +114,7 @@ class _ItemDetailPageState extends State<ItemDetailPage>
                       borderRadius: BorderRadius.circular(24),
                       child: Image.asset(
                         widget.item.imagePath,
-                        fit: BoxFit.contain, // Ensures the whole image is visible
+                        fit: BoxFit.contain,
                       ),
                     ),
                   ),
@@ -124,12 +122,9 @@ class _ItemDetailPageState extends State<ItemDetailPage>
               ),
             ),
           ),
-          // --- Details Panel ---
           SliverToBoxAdapter(
             child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-              ),
+              decoration: const BoxDecoration(color: Colors.white),
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
                 child: Column(
@@ -142,19 +137,12 @@ class _ItemDetailPageState extends State<ItemDetailPage>
                         Expanded(
                           child: Text(
                             widget.item.name,
-                            style: const TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                           ),
                         ),
                         Text(
                           "${widget.item.price} KZT",
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: mainBrown,
-                          ),
+                          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: mainBrown),
                         ),
                       ],
                     ),
@@ -233,7 +221,7 @@ class _ItemDetailPageState extends State<ItemDetailPage>
                   return ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: const CircleAvatar(
-                      backgroundImage: AssetImage("assets/profile.png"),
+                      backgroundImage: AssetImage("assets/profile.jpg"),
                     ),
                     title: Text(review.author, style: const TextStyle(fontWeight: FontWeight.bold)),
                     subtitle: Text(review.text, maxLines: 2, overflow: TextOverflow.ellipsis),
@@ -300,20 +288,10 @@ class _ItemDetailPageState extends State<ItemDetailPage>
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(30),
-          topRight: Radius.circular(30),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 20,
-            offset: const Offset(0, -5),
-          ),
-        ],
+        borderRadius: const BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30)),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, -5))],
       ),
       child: SafeArea(
-        top: false,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
