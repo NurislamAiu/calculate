@@ -10,11 +10,16 @@ class OrderListPage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
-      // Мы убрали AppBar отсюда, так как он теперь общий в HomePage
+      appBar: AppBar(
+        title: const Text("Orders Dashboard"),
+        backgroundColor: Colors.white,
+      ),
       body: StreamBuilder<QuerySnapshot>(
+        // Only fetch orders that are not completed (so they get "ticked off" and disappear)
         stream: FirebaseFirestore.instance
             .collection('orders')
-            .snapshots(), // Убрали orderBy временно для теста
+            .where('status', isNotEqualTo: 'Delivered')
+            .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator(color: mainBrown));
@@ -27,15 +32,15 @@ class OrderListPage extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.assignment_late_outlined, size: 64, color: Colors.grey),
+                  Icon(Icons.assignment_turned_in, size: 80, color: Colors.grey),
                   SizedBox(height: 16),
-                  Text('No orders yet!', style: TextStyle(color: Colors.grey, fontSize: 18)),
+                  Text('All orders are completed!', style: TextStyle(color: Colors.grey, fontSize: 18, fontWeight: FontWeight.bold)),
                 ],
               ),
             );
           }
 
-          // Сортируем вручную по времени, если поле timestamp есть
+          // Sort manually by timestamp
           final orders = snapshot.data!.docs.toList();
           orders.sort((a, b) {
             final aData = a.data() as Map<String, dynamic>;
@@ -119,7 +124,7 @@ class OrderListPage extends StatelessWidget {
                           
                           const Divider(height: 40),
                           
-                          const Text("Items Summary", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          const Text("Items", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                           const SizedBox(height: 12),
                           ...items.map((item) => Padding(
                             padding: const EdgeInsets.only(bottom: 8.0),
@@ -137,39 +142,50 @@ class OrderListPage extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(child: Text("${item['name']}", style: const TextStyle(fontSize: 15))),
-                                Text("${item['price'] * item['quantity']} ₸", style: const TextStyle(fontWeight: FontWeight.w600)),
                               ],
                             ),
-                          )).toList(),
+                          )),
                           
-                          const Divider(height: 40),
+                          const Divider(height: 20),
                           
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text("Grand Total", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                              Text("$totalPrice ₸", style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: mainBrown)),
+                              const Text("Total", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                              Text("$totalPrice ₸", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: mainBrown)),
                             ],
                           ),
                           
                           const SizedBox(height: 24),
                           
-                          if (status != 'Delivered')
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: status == 'Pending' ? mainBrown : Colors.green,
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          Row(
+                            children: [
+                              if (status == 'Pending')
+                                Expanded(
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: mainBrown,
+                                      padding: const EdgeInsets.symmetric(vertical: 16),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                    ),
+                                    onPressed: () => _updateStatus(orderDoc.id, 'Cooking'),
+                                    child: const Text("ACCEPT & COOK", style: TextStyle(fontWeight: FontWeight.bold)),
+                                  ),
                                 ),
-                                onPressed: () => _updateStatus(orderDoc.id, status),
-                                child: Text(
-                                  status == 'Pending' ? "START COOKING" : "MARK AS DELIVERED",
-                                  style: const TextStyle(letterSpacing: 1.2, fontWeight: FontWeight.w900),
+                              if (status == 'Cooking')
+                                Expanded(
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.green,
+                                      padding: const EdgeInsets.symmetric(vertical: 16),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                    ),
+                                    onPressed: () => _updateStatus(orderDoc.id, 'Delivered'),
+                                    child: const Text("TICK OFF (DONE)", style: TextStyle(fontWeight: FontWeight.bold)),
+                                  ),
                                 ),
-                              ),
-                            ),
+                            ],
+                          )
                         ],
                       ),
                     ),
@@ -222,10 +238,9 @@ class OrderListPage extends StatelessWidget {
     );
   }
 
-  Future<void> _updateStatus(String orderId, String currentStatus) async {
-    String nextStatus = currentStatus == 'Pending' ? 'Cooking' : 'Delivered';
+  Future<void> _updateStatus(String orderId, String newStatus) async {
     await FirebaseFirestore.instance.collection('orders').doc(orderId).update({
-      'status': nextStatus,
+      'status': newStatus,
     });
   }
 }

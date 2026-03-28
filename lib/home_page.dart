@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:example/cart_manager.dart';
-import 'package:example/screens/profile_page.dart'; // Corrected import
+import 'package:example/screens/profile_page.dart';
 import 'package:example/screens/item_detail_page.dart';
 import 'package:example/screens/order_list_page.dart';
 import 'package:example/services/food_service.dart';
@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 
 import 'cart_page.dart';
 import 'models/food_item.dart';
-import 'models/user_profile.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -19,10 +18,10 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _currentIndex = 0;
   String _selectedCategory = 'All';
   String? _avatarUrl; 
   String _role = 'user';
+  String? _userEmail;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = "";
   final FoodService _foodService = FoodService();
@@ -47,6 +46,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _loadUserData() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
+      _userEmail = user.email;
       await Future.wait([
         cartManager.loadCart(user.uid),
         _loadUserProfile(user.uid),
@@ -63,6 +63,11 @@ class _HomePageState extends State<HomePage> {
           setState(() {
             _avatarUrl = data['avatarUrl'];
             _role = data['role'] ?? 'user';
+            
+            // SPECIAL CASE FOR ADMIN
+            if (_userEmail == 'parisbrestulydala@food.com') {
+              _role = 'employee';
+            }
           });
         }
       }
@@ -71,21 +76,17 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  bool get _isAdmin => _userEmail == 'parisbrestulydala@food.com';
+
   @override
   Widget build(BuildContext context) {
     const Color mainBrown = Color(0xFF79573C);
 
-    final List<Widget> pages = [
-      _buildMenuContent(mainBrown),
-      const OrderListPage(),
-    ];
-
     return Scaffold(
       appBar: AppBar(
         leadingWidth: 0,
-        title: Text(_role == 'employee' && _currentIndex == 1 ? "Orders Dashboard" : "Menu"),
+        title: const Text("Menu"),
         actions: [
-          // PROFILE ICON
           Padding(
             padding: const EdgeInsets.only(right: 16.0, left: 8.0),
             child: GestureDetector(
@@ -97,47 +98,49 @@ class _HomePageState extends State<HomePage> {
               },
               child: CircleAvatar(
                 radius: 20,
-                backgroundImage: (_avatarUrl != null && _avatarUrl!.startsWith('http'))
-                    ? NetworkImage(_avatarUrl!)
-                    : const AssetImage('assets/profile.png') as ImageProvider,
+                backgroundImage: _isAdmin
+                    ? const AssetImage('assets/profile.jpg')
+                    : (_avatarUrl != null && _avatarUrl!.startsWith('http'))
+                        ? NetworkImage(_avatarUrl!)
+                        : const AssetImage('assets/profile.jpg') as ImageProvider,
                 backgroundColor: Colors.grey[200],
               ),
             ),
           ),
         ],
       ),
-      body: _role == 'employee' ? pages[_currentIndex] : pages[0],
-      bottomNavigationBar: _role == 'employee' ? BottomNavigationBar(
-        currentIndex: _currentIndex,
-        selectedItemColor: mainBrown,
-        unselectedItemColor: Colors.grey,
-        onTap: (index) => setState(() => _currentIndex = index),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.restaurant_menu), label: 'Menu'),
-          BottomNavigationBarItem(icon: Icon(Icons.assignment_turned_in), label: 'To-Do List'),
-        ],
-      ) : null,
-      // FLOATING CART BUTTON
-      floatingActionButton: _currentIndex == 0 ? ListenableBuilder(
-        listenable: cartManager,
-        builder: (context, _) {
-          return FloatingActionButton(
+      body: _buildMenuContent(mainBrown),
+      floatingActionButton: _isAdmin 
+        ? FloatingActionButton(
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const CartPage()),
+                MaterialPageRoute(builder: (context) => const OrderListPage()),
               );
             },
             backgroundColor: mainBrown,
-            child: Badge(
-              label: Text('${cartManager.totalQuantity}'),
-              isLabelVisible: cartManager.totalQuantity > 0,
-              backgroundColor: Colors.red,
-              child: const Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 28),
-            ),
-          );
-        },
-      ) : null,
+            child: const Icon(Icons.assignment_turned_in, color: Colors.white, size: 28),
+          ) 
+        : ListenableBuilder(
+            listenable: cartManager,
+            builder: (context, _) {
+              return FloatingActionButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const CartPage()),
+                  );
+                },
+                backgroundColor: mainBrown,
+                child: Badge(
+                  label: Text('${cartManager.totalQuantity}'),
+                  isLabelVisible: cartManager.totalQuantity > 0,
+                  backgroundColor: Colors.red,
+                  child: const Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 28),
+                ),
+              );
+            },
+          ),
     );
   }
 
@@ -177,7 +180,23 @@ class _HomePageState extends State<HomePage> {
                 return Center(child: CircularProgressIndicator(color: mainBrown));
               }
               if (snapshot.hasError) return const Center(child: Text('Something went wrong'));
-              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) return const Center(child: Text('No food items found.'));
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return Center(
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      try {
+                        await _foodService.uploadInitialFoods();
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Menu initialized!')));
+                        }
+                      } catch (e) {
+                        print(e);
+                      }
+                    }, 
+                    child: const Text('Initialize Menu')
+                  )
+                );
+              }
 
               var foodDocs = snapshot.data!.docs;
               if (_searchQuery.isNotEmpty) {
@@ -194,7 +213,7 @@ class _HomePageState extends State<HomePage> {
                 itemBuilder: (context, index) {
                   final doc = foodDocs[index];
                   final item = FoodItem.fromMap(doc.data() as Map<String, dynamic>);
-                  return FoodListCard(item: item);
+                  return FoodListCard(item: item, isAdmin: _isAdmin);
                 },
               );
             },
@@ -216,7 +235,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildCategoryChips() {
-    const categories = ['All', 'Pizza', 'Burger', 'Sushi'];
+    const categories = ['All', 'Food', 'Pastries', 'Coffee', 'Signature Tea', 'Hot Drinks'];
     return SizedBox(
       height: 50,
       child: ListView.builder(
@@ -250,7 +269,8 @@ class _HomePageState extends State<HomePage> {
 
 class FoodListCard extends StatelessWidget {
   final FoodItem item;
-  const FoodListCard({super.key, required this.item});
+  final bool isAdmin;
+  const FoodListCard({super.key, required this.item, required this.isAdmin});
 
   @override
   Widget build(BuildContext context) {
@@ -298,15 +318,16 @@ class FoodListCard extends StatelessWidget {
                 ],
               ),
             ),
-            IconButton(
-              onPressed: () {
-                cartManager.addItem(item.name, item.imagePath, item.price);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('${item.name} added to cart!'), duration: const Duration(seconds: 1), backgroundColor: mainBrown),
-                );
-              },
-              icon: const Icon(Icons.add_circle, color: mainBrown, size: 32),
-            ),
+            if (!isAdmin)
+              IconButton(
+                onPressed: () {
+                  cartManager.addItem(item.name, item.imagePath, item.price);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('${item.name} added to cart!'), duration: const Duration(seconds: 1), backgroundColor: mainBrown),
+                  );
+                },
+                icon: const Icon(Icons.add_circle, color: mainBrown, size: 32),
+              ),
           ],
         ),
       ),

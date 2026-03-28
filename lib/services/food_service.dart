@@ -22,147 +22,275 @@ class FoodService {
   // Метод для массовой загрузки данных в Firestore
   Future<void> uploadInitialFoods() async {
     final List<Map<String, dynamic>> foods = [
-      // PIZZAS
+      // FOOD
       {
-        'name': 'Margherita Pizza',
-        'imagePath': 'assets/pizza.png',
-        'price': 3500,
-        'category': 'Pizza',
-        'ingredients': ['Tomato Sauce', 'Mozzarella', 'Fresh Basil', 'Olive Oil']
+        'name': 'Baguette with salmon',
+        'imagePath': 'assets/coming.jpg', // Temporary placeholder image
+        'price': 3700,
+        'category': 'Food',
+        'ingredients': ['Baguette', 'Salmon', 'Cream Cheese']
       },
       {
-        'name': 'Pepperoni Pizza',
-        'imagePath': 'assets/pizza.png',
-        'price': 4200,
-        'category': 'Pizza',
-        'ingredients': ['Tomato Sauce', 'Mozzarella', 'Pepperoni', 'Oregano']
+        'name': 'Baguette with mozzarella',
+        'imagePath': 'assets/coming.jpg',
+        'price': 3700,
+        'category': 'Food',
+        'ingredients': ['Baguette', 'Mozzarella', 'Tomatoes', 'Pesto']
       },
       {
-        'name': 'Hawaiian Pizza',
-        'imagePath': 'assets/pizza.png',
-        'price': 4000,
-        'category': 'Pizza',
-        'ingredients': ['Tomato Sauce', 'Mozzarella', 'Ham', 'Pineapple']
-      },
-      {
-        'name': 'BBQ Chicken Pizza',
-        'imagePath': 'assets/pizza.png',
-        'price': 4500,
-        'category': 'Pizza',
-        'ingredients': ['BBQ Sauce', 'Mozzarella', 'Grilled Chicken', 'Red Onions']
-      },
-      {
-        'name': 'Four Cheese Pizza',
-        'imagePath': 'assets/pizza.png',
-        'price': 4800,
-        'category': 'Pizza',
-        'ingredients': ['Mozzarella', 'Parmesan', 'Gorgonzola', 'Emmental']
-      },
-      // BURGERS
-      {
-        'name': 'Classic Burger',
-        'imagePath': 'assets/burger.png',
-        'price': 2500,
-        'category': 'Burger',
-        'ingredients': ['Beef Patty', 'Lettuce', 'Tomato', 'Onion', 'Special Sauce']
-      },
-      {
-        'name': 'Cheeseburger',
-        'imagePath': 'assets/burger.png',
-        'price': 2800,
-        'category': 'Burger',
-        'ingredients': ['Beef Patty', 'Cheddar Cheese', 'Pickles', 'Ketchup', 'Mustard']
-      },
-      {
-        'name': 'Double Bacon Burger',
-        'imagePath': 'assets/burger.png',
-        'price': 3800,
-        'category': 'Burger',
-        'ingredients': ['Double Beef Patty', 'Crispy Bacon', 'Cheddar', 'BBQ Sauce']
-      },
-      {
-        'name': 'Chicken Zinger',
-        'imagePath': 'assets/burger.png',
-        'price': 3000,
-        'category': 'Burger',
-        'ingredients': ['Crispy Chicken', 'Mayo', 'Lettuce', 'Sesame Bun']
-      },
-      {
-        'name': 'Mushroom Swiss Burger',
-        'imagePath': 'assets/burger.png',
+        'name': 'Baguette with chicken',
+        'imagePath': 'assets/coming.jpg',
         'price': 3200,
-        'category': 'Burger',
-        'ingredients': ['Beef Patty', 'Sautéed Mushrooms', 'Swiss Cheese', 'Garlic Aioli']
-      },
-      // SUSHI
-      {
-        'name': 'Salmon Nigiri',
-        'imagePath': 'assets/sushi.png',
-        'price': 1200,
-        'category': 'Sushi',
-        'ingredients': ['Fresh Salmon', 'Vinegared Rice', 'Wasabi']
+        'category': 'Food',
+        'ingredients': ['Baguette', 'Chicken', 'Lettuce', 'Sauce']
       },
       {
-        'name': 'California Roll',
-        'imagePath': 'assets/sushi.png',
-        'price': 2200,
-        'category': 'Sushi',
-        'ingredients': ['Crab Stick', 'Avocado', 'Cucumber', 'Tobiko']
+        'name': 'Croissant with salmon',
+        'imagePath': 'assets/coming.jpg',
+        'price': 3700,
+        'category': 'Food',
+        'ingredients': ['Croissant', 'Salmon', 'Cream Cheese']
       },
       {
-        'name': 'Philadelphia Roll',
-        'imagePath': 'assets/sushi.png',
-        'price': 2800,
-        'category': 'Sushi',
-        'ingredients': ['Cream Cheese', 'Salmon', 'Cucumber', 'Rice']
+        'name': 'Croissant with mozzarella',
+        'imagePath': 'assets/coming.jpg',
+        'price': 3700,
+        'category': 'Food',
+        'ingredients': ['Croissant', 'Mozzarella', 'Tomatoes', 'Pesto']
       },
       {
-        'name': 'Dragon Roll',
-        'imagePath': 'assets/sushi.png',
+        'name': 'Croissant with chicken',
+        'imagePath': 'assets/coming.jpg',
+        'price': 3200,
+        'category': 'Food',
+        'ingredients': ['Croissant', 'Chicken', 'Lettuce', 'Sauce']
+      },
+      {
+        'name': 'Syrniki (cottage cheese pancakes)',
+        'imagePath': 'assets/coming.jpg',
         'price': 3500,
-        'category': 'Sushi',
-        'ingredients': ['Shrimp Tempura', 'Unagi', 'Avocado', 'Eel Sauce']
+        'category': 'Food',
+        'ingredients': ['Cottage Cheese', 'Flour', 'Eggs', 'Sugar']
+      },
+      // PASTRIES
+      {
+        'name': 'Classic croissant',
+        'imagePath': 'assets/coming.jpg',
+        'price': 1300,
+        'category': 'Pastries',
+        'ingredients': ['Flour', 'Butter', 'Yeast']
       },
       {
-        'name': 'Spicy Tuna Roll',
-        'imagePath': 'assets/sushi.png',
-        'price': 2500,
-        'category': 'Sushi',
-        'ingredients': ['Tuna', 'Spicy Mayo', 'Spring Onion']
+        'name': 'Strawberry croissant',
+        'imagePath': 'assets/coming.jpg',
+        'price': 1700,
+        'category': 'Pastries',
+        'ingredients': ['Croissant', 'Strawberry Jam']
       },
       {
-        'name': 'Tempura Set',
-        'imagePath': 'assets/sushi.png',
-        'price': 4000,
-        'category': 'Sushi',
-        'ingredients': ['Shrimp Tempura', 'Veggie Tempura', 'Tentsuyu Sauce']
-      },
-      // EXTRA ITEMS
-      {
-        'name': 'Greek Salad',
-        'imagePath': 'assets/pizza.png',
+        'name': 'Almond croissant',
+        'imagePath': 'assets/coming.jpg',
         'price': 1800,
-        'category': 'Other',
-        'ingredients': ['Cucumber', 'Tomato', 'Feta Cheese', 'Olives', 'Red Onion']
+        'category': 'Pastries',
+        'ingredients': ['Croissant', 'Almond Cream', 'Almond Flakes']
       },
       {
-        'name': 'French Fries',
-        'imagePath': 'assets/burger.png',
-        'price': 1000,
-        'category': 'Other',
-        'ingredients': ['Potato', 'Salt', 'Vegetable Oil']
+        'name': 'Snail with raisins and candied fruit',
+        'imagePath': 'assets/coming.jpg',
+        'price': 1400,
+        'category': 'Pastries',
+        'ingredients': ['Puff Pastry', 'Raisins', 'Candied Fruit']
+      },
+      {
+        'name': 'Apple chausson',
+        'imagePath': 'assets/coming.jpg',
+        'price': 1700,
+        'category': 'Pastries',
+        'ingredients': ['Puff Pastry', 'Apple Filling']
+      },
+      {
+        'name': 'Swiss puff pastry',
+        'imagePath': 'assets/coming.jpg',
+        'price': 1500,
+        'category': 'Pastries',
+        'ingredients': ['Puff Pastry', 'Custard', 'Chocolate Chips']
+      },
+      {
+        'name': 'Swedish bun',
+        'imagePath': 'assets/coming.jpg',
+        'price': 1300,
+        'category': 'Pastries',
+        'ingredients': ['Dough', 'Cardamom', 'Sugar']
+      },
+      {
+        'name': 'Poppy seed bun',
+        'imagePath': 'assets/coming.jpg',
+        'price': 1300,
+        'category': 'Pastries',
+        'ingredients': ['Dough', 'Poppy Seeds', 'Sugar']
+      },
+      // COFFEE
+      {
+        'name': 'Espresso',
+        'imagePath': 'assets/coming.jpg',
+        'price': 900,
+        'category': 'Coffee',
+        'ingredients': ['Coffee Beans', 'Water']
+      },
+      {
+        'name': 'Americano 0.35',
+        'imagePath': 'assets/coming.jpg',
+        'price': 1200,
+        'category': 'Coffee',
+        'ingredients': ['Espresso', 'Hot Water']
+      },
+      {
+        'name': 'Cappuccino large 0.35',
+        'imagePath': 'assets/coming.jpg',
+        'price': 1400,
+        'category': 'Coffee',
+        'ingredients': ['Espresso', 'Steamed Milk', 'Milk Foam']
+      },
+      {
+        'name': 'Cappuccino small 0.2',
+        'imagePath': 'assets/coming.jpg',
+        'price': 1200,
+        'category': 'Coffee',
+        'ingredients': ['Espresso', 'Steamed Milk', 'Milk Foam']
+      },
+      {
+        'name': 'Latte 0.35',
+        'imagePath': 'assets/coming.jpg',
+        'price': 1400,
+        'category': 'Coffee',
+        'ingredients': ['Espresso', 'Lots of Steamed Milk', 'Light Foam']
+      },
+      {
+        'name': 'Flat white 0.2',
+        'imagePath': 'assets/coming.jpg',
+        'price': 1300,
+        'category': 'Coffee',
+        'ingredients': ['Double Espresso', 'Micro-foamed Milk']
+      },
+      {
+        'name': 'Plant-based milk (add-on)',
+        'imagePath': 'assets/coming.jpg',
+        'price': 400,
+        'category': 'Coffee',
+        'ingredients': ['Plant-based Milk']
+      },
+      // SIGNATURE TEAS
+      {
+        'name': 'Cranberry - Orange 0.35',
+        'imagePath': 'assets/coming.jpg',
+        'price': 2200,
+        'category': 'Signature Tea',
+        'ingredients': ['Cranberry', 'Orange', 'Tea', 'Honey']
+      },
+      {
+        'name': 'Sea buckthorn - Raspberry - Lime 0.35',
+        'imagePath': 'assets/coming.jpg',
+        'price': 2200,
+        'category': 'Signature Tea',
+        'ingredients': ['Sea buckthorn', 'Raspberry', 'Lime', 'Tea']
+      },
+      {
+        'name': 'Currant - Thyme 0.35',
+        'imagePath': 'assets/coming.jpg',
+        'price': 2200,
+        'category': 'Signature Tea',
+        'ingredients': ['Currant', 'Thyme', 'Tea']
+      },
+      {
+        'name': 'Raspberry - Mango 0.35',
+        'imagePath': 'assets/coming.jpg',
+        'price': 2200,
+        'category': 'Signature Tea',
+        'ingredients': ['Raspberry', 'Mango', 'Tea']
+      },
+      {
+        'name': 'Cherry - Eucalyptus 0.35',
+        'imagePath': 'assets/coming.jpg',
+        'price': 2200,
+        'category': 'Signature Tea',
+        'ingredients': ['Cherry', 'Eucalyptus', 'Tea']
+      },
+      // HOT DRINKS
+      {
+        'name': 'Non-alcoholic mulled wine 0.35',
+        'imagePath': 'assets/coming.jpg',
+        'price': 2200,
+        'category': 'Hot Drinks',
+        'ingredients': ['Grape Juice', 'Spices', 'Fruits']
+      },
+      {
+        'name': 'Matcha latte 0.35',
+        'imagePath': 'assets/coming.jpg',
+        'price': 2000,
+        'category': 'Hot Drinks',
+        'ingredients': ['Matcha Powder', 'Steamed Milk']
+      },
+      {
+        'name': 'Matcha latte with plant milk 0.35',
+        'imagePath': 'assets/coming.jpg',
+        'price': 2400,
+        'category': 'Hot Drinks',
+        'ingredients': ['Matcha Powder', 'Plant-based Milk']
+      },
+      {
+        'name': 'Hot chocolate 0.35',
+        'imagePath': 'assets/coming.jpg',
+        'price': 1500,
+        'category': 'Hot Drinks',
+        'ingredients': ['Chocolate', 'Milk']
+      },
+      {
+        'name': 'Black tea (teapot) 0.8',
+        'imagePath': 'assets/coming.jpg',
+        'price': 1500,
+        'category': 'Hot Drinks',
+        'ingredients': ['Black Tea Leaves', 'Hot Water']
+      },
+      {
+        'name': 'Green tea (teapot) 0.8',
+        'imagePath': 'assets/coming.jpg',
+        'price': 1500,
+        'category': 'Hot Drinks',
+        'ingredients': ['Green Tea Leaves', 'Hot Water']
+      },
+      {
+        'name': 'Herbal tea (teapot) 0.8',
+        'imagePath': 'assets/coming.jpg',
+        'price': 1500,
+        'category': 'Hot Drinks',
+        'ingredients': ['Herbal Blend', 'Hot Water']
+      },
+      {
+        'name': 'Fruit hibiscus (teapot) 0.8',
+        'imagePath': 'assets/coming.jpg',
+        'price': 1500,
+        'category': 'Hot Drinks',
+        'ingredients': ['Hibiscus Flowers', 'Dried Fruits', 'Hot Water']
       },
     ];
 
-    WriteBatch batch = _firestore.batch();
-
-    for (var food in foods) {
-      DocumentReference docRef = _firestore.collection('foods').doc(food['name']);
-      batch.set(docRef, food);
-    }
-
     try {
-      await batch.commit();
+      // First, delete existing menu items
+      final existingFoods = await _firestore.collection('foods').get();
+      WriteBatch deleteBatch = _firestore.batch();
+      for (var doc in existingFoods.docs) {
+        deleteBatch.delete(doc.reference);
+      }
+      await deleteBatch.commit();
+
+      // Second, upload new items
+      WriteBatch createBatch = _firestore.batch();
+      for (var food in foods) {
+        DocumentReference docRef = _firestore.collection('foods').doc(food['name']);
+        createBatch.set(docRef, food);
+      }
+      await createBatch.commit();
+
     } catch (e) {
       print("Error uploading foods: $e");
       rethrow;

@@ -1,5 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:example/screens/order_list_page.dart';
 import 'package:example/services/auth_service.dart';
 import 'package:example/screens/edit_profile_page.dart';
+import 'package:example/services/food_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../models/user_profile.dart';
@@ -15,6 +18,7 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   final UserProfileService _userService = UserProfileService();
   final AuthService _authService = AuthService();
+  final FoodService _foodService = FoodService();
   final User? currentUser = FirebaseAuth.instance.currentUser;
 
   @override
@@ -85,41 +89,133 @@ class _ProfilePageState extends State<ProfilePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              "Welcome back, ${user.name}",
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              "Here is what's happening today",
-              style: TextStyle(color: Colors.grey),
+            Row(
+              children: [
+                const CircleAvatar(
+                  radius: 30,
+                  backgroundImage: AssetImage('assets/profile.jpg'),
+                ),
+                const SizedBox(width: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Welcome back, ${user.name}",
+                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
+                    const Text(
+                      "System Administrator",
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ],
             ),
             const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(child: _buildAdminStatCard("Revenue", "₸1.2M", Icons.payments, Colors.green)),
-                const SizedBox(width: 16),
-                Expanded(child: _buildAdminStatCard("Orders", "1,240", Icons.shopping_bag, Colors.blue)),
-              ],
+            
+            // Real-time Data Section
+            StreamBuilder(
+              stream: FirebaseFirestore.instance.collection('orders').snapshots(),
+              builder: (context, AsyncSnapshot<QuerySnapshot> ordersSnapshot) {
+                return StreamBuilder(
+                  stream: FirebaseFirestore.instance.collection('users').snapshots(),
+                  builder: (context, AsyncSnapshot<QuerySnapshot> usersSnapshot) {
+                    
+                    int totalOrders = 0;
+                    int totalRevenue = 0;
+                    int activeOrders = 0;
+                    
+                    if (ordersSnapshot.hasData) {
+                      totalOrders = ordersSnapshot.data!.docs.length;
+                      for (var doc in ordersSnapshot.data!.docs) {
+                        final data = doc.data() as Map<String, dynamic>;
+                        totalRevenue += (data['totalPrice'] as num?)?.toInt() ?? 0;
+                        if (data['status'] != 'Delivered') {
+                          activeOrders++;
+                        }
+                      }
+                    }
+
+                    int totalUsers = 0;
+                    if (usersSnapshot.hasData) {
+                      totalUsers = usersSnapshot.data!.docs.length;
+                    }
+
+                    return Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(child: _buildAdminStatCard("Total Revenue", "₸${(totalRevenue / 1000).toStringAsFixed(1)}k", Icons.payments, Colors.green)),
+                            const SizedBox(width: 16),
+                            Expanded(child: _buildAdminStatCard("Total Orders", "$totalOrders", Icons.shopping_bag, Colors.blue)),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(child: _buildAdminStatCard("Total Users", "$totalUsers", Icons.people, Colors.orange)),
+                            const SizedBox(width: 16),
+                            Expanded(child: _buildAdminStatCard("Active Orders", "$activeOrders", Icons.pending_actions, Colors.purple)),
+                          ],
+                        ),
+                      ],
+                    );
+                  }
+                );
+              }
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(child: _buildAdminStatCard("Users", "45.2K", Icons.people, Colors.orange)),
-                const SizedBox(width: 16),
-                Expanded(child: _buildAdminStatCard("Growth", "+12%", Icons.trending_up, Colors.purple)),
-              ],
-            ),
+
             const SizedBox(height: 32),
             const Text(
               "Management Tools",
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            _buildAdminMenuTile("Inventory Management", Icons.inventory_2, "Track and update stocks"),
-            _buildAdminMenuTile("Order Processing", Icons.local_shipping, "Review and fulfill orders"),
-            _buildAdminMenuTile("Customer Support", Icons.support_agent, "Handle user inquiries"),
-            _buildAdminMenuTile("Analytics Reports", Icons.bar_chart, "Detailed business insights"),
+            _buildAdminMenuTile(
+              "Sync Menu Items (Overwrite DB)", 
+              Icons.sync, 
+              "Replace existing food with latest hardcoded menu", 
+              onTap: () async {
+                try {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Syncing menu with database...')));
+                  await _foodService.uploadInitialFoods();
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Menu synced successfully!')));
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to sync: $e', style: const TextStyle(color: Colors.white)), backgroundColor: Colors.red));
+                  }
+                }
+              }
+            ),
+            _buildAdminMenuTile(
+              "Order Processing", 
+              Icons.local_shipping, 
+              "Review and fulfill orders",
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const OrderListPage()),
+                );
+              }
+            ),
+            _buildAdminMenuTile(
+              "Customer Support", 
+              Icons.support_agent, 
+              "Handle user inquiries",
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Support page coming soon!')));
+              }
+            ),
+            _buildAdminMenuTile(
+              "Analytics Reports", 
+              Icons.bar_chart, 
+              "Detailed business insights",
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Analytics page coming soon!')));
+              }
+            ),
             const SizedBox(height: 20),
             Center(
               child: OutlinedButton(
@@ -155,7 +251,7 @@ class _ProfilePageState extends State<ProfilePage> {
         children: [
           Icon(icon, color: color, size: 30),
           const SizedBox(height: 12),
-          Text(title, style: const TextStyle(color: Colors.grey, fontSize: 14)),
+          Text(title, style: const TextStyle(color: Colors.grey, fontSize: 13, fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
           Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
         ],
@@ -163,7 +259,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildAdminMenuTile(String title, IconData icon, String subtitle) {
+  Widget _buildAdminMenuTile(String title, IconData icon, String subtitle, {VoidCallback? onTap}) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -176,12 +272,12 @@ class _ProfilePageState extends State<ProfilePage> {
             color: const Color(0xFF79573C).withOpacity(0.1),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: const Icon(Icons.settings, color: Color(0xFF79573C)),
+          child: Icon(icon, color: const Color(0xFF79573C)),
         ),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text(subtitle, style: const TextStyle(fontSize: 12)),
         trailing: const Icon(Icons.chevron_right),
-        onTap: () {},
+        onTap: onTap,
       ),
     );
   }
@@ -290,7 +386,7 @@ class _ProfilePageState extends State<ProfilePage> {
     if (user.avatarUrl.startsWith('http')) {
       avatarImage = NetworkImage(user.avatarUrl);
     } else {
-      avatarImage = AssetImage(user.avatarUrl.isNotEmpty ? user.avatarUrl : 'assets/profile.png');
+      avatarImage = AssetImage(user.avatarUrl.isNotEmpty ? user.avatarUrl : 'assets/profile.jpg');
     }
 
     return Column(

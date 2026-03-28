@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import '../cart_manager.dart';
 import '../models/food_item.dart';
 import '../models/review.dart';
-import '../models/user_profile.dart';
 
 class ItemDetailPage extends StatefulWidget {
   final FoodItem item;
@@ -19,8 +18,10 @@ class _ItemDetailPageState extends State<ItemDetailPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final _reviewController = TextEditingController();
+  final _replyController = TextEditingController();
   int _currentRating = 0;
   String? _userName;
+  String? _userEmail;
 
   @override
   void initState() {
@@ -32,6 +33,7 @@ class _ItemDetailPageState extends State<ItemDetailPage>
   Future<void> _loadUserData() async {
     final user = AuthService().currentUser;
     if (user != null) {
+      _userEmail = user.email;
       final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
       if (doc.exists && doc.data() != null) {
         final data = doc.data()!;
@@ -44,10 +46,13 @@ class _ItemDetailPageState extends State<ItemDetailPage>
     }
   }
 
+  bool get _isAdmin => _userEmail == 'parisbrestulydala@food.com';
+
   @override
   void dispose() {
     _tabController.dispose();
     _reviewController.dispose();
+    _replyController.dispose();
     super.dispose();
   }
 
@@ -68,6 +73,21 @@ class _ItemDetailPageState extends State<ItemDetailPage>
         _currentRating = 0;
       });
       FocusScope.of(context).unfocus();
+    }
+  }
+
+  void _submitReply(String reviewId) {
+    if (_replyController.text.isNotEmpty) {
+      FirebaseFirestore.instance
+          .collection('reviews')
+          .doc(widget.item.name)
+          .collection('item_reviews')
+          .doc(reviewId)
+          .update({
+        'reply': _replyController.text,
+      });
+      _replyController.clear();
+      Navigator.pop(context);
     }
   }
 
@@ -161,7 +181,7 @@ class _ItemDetailPageState extends State<ItemDetailPage>
                     ),
                     const SizedBox(height: 16),
                     SizedBox(
-                      height: 300,
+                      height: 400, // Increased height for replies
                       child: TabBarView(
                         controller: _tabController,
                         children: [
@@ -177,7 +197,7 @@ class _ItemDetailPageState extends State<ItemDetailPage>
           ),
         ],
       ),
-      bottomNavigationBar: _buildAddToCartBar(context, mainBrown),
+      bottomNavigationBar: _isAdmin ? null : _buildAddToCartBar(context, mainBrown),
     );
   }
 
@@ -207,40 +227,105 @@ class _ItemDetailPageState extends State<ItemDetailPage>
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
               }
-              final reviews = snapshot.data!.docs.map((doc) => Review.fromMap(doc.data() as Map<String, dynamic>)).toList();
               
-              if (reviews.isEmpty) {
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                 return const Center(child: Text("No reviews yet. Be the first!", style: TextStyle(color: Colors.grey)));
               }
 
               return ListView.builder(
                 padding: EdgeInsets.zero,
-                itemCount: reviews.length,
+                itemCount: snapshot.data!.docs.length,
                 itemBuilder: (context, index) {
-                  final review = reviews[index];
-                  return ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const CircleAvatar(
-                      backgroundImage: AssetImage("assets/profile.jpg"),
-                    ),
-                    title: Text(review.author, style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text(review.text, maxLines: 2, overflow: TextOverflow.ellipsis),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: List.generate(5, (starIndex) => Icon(
-                        starIndex < review.rating ? Icons.star : Icons.star_border,
-                        color: Colors.amber,
-                        size: 16,
-                      )),
-                    ),
+                  final doc = snapshot.data!.docs[index];
+                  final reviewData = doc.data() as Map<String, dynamic>;
+                  final review = Review.fromMap(reviewData);
+                  
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: const CircleAvatar(
+                          backgroundImage: AssetImage("assets/profile.jpg"),
+                        ),
+                        title: Text(review.author, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Text(review.text),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: List.generate(5, (starIndex) => Icon(
+                            starIndex < review.rating ? Icons.star : Icons.star_border,
+                            color: Colors.amber,
+                            size: 16,
+                          )),
+                        ),
+                      ),
+                      if (review.reply != null)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 48, bottom: 8),
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Icon(Icons.reply, size: 16, color: Colors.grey),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text("Admin Reply", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                      const SizedBox(height: 4),
+                                      Text(review.reply!, style: const TextStyle(fontSize: 14)),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      if (_isAdmin && review.reply == null)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 48),
+                          child: TextButton(
+                            onPressed: () => _showReplyDialog(doc.id),
+                            child: const Text("Reply"),
+                          ),
+                        ),
+                      const Divider(),
+                    ],
                   );
                 },
               );
             },
           ),
         ),
-        _buildReviewInputField(),
+        if (!_isAdmin) _buildReviewInputField(),
       ],
+    );
+  }
+
+  void _showReplyDialog(String reviewId) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Reply to Review"),
+        content: TextField(
+          controller: _replyController,
+          decoration: const InputDecoration(hintText: "Enter your reply..."),
+          maxLines: 3,
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+          ElevatedButton(
+            onPressed: () => _submitReply(reviewId),
+            child: const Text("Submit"),
+          ),
+        ],
+      ),
     );
   }
 

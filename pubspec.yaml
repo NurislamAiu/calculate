@@ -32,9 +32,6 @@ flutter:
 
 
   assets:
-    - assets/pizza.png
-    - assets/burger.png
-    - assets/sushi.png
-    - assets/profile.png
     - assets/profile.jpg
     - assets/logo.jpg
+    - assets/coming.jpg
